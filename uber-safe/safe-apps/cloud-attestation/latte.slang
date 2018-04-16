@@ -1,4 +1,5 @@
 defenv IaaS() :- '152.3.145.38:444'.
+defenv BuilderImage() :- "0x12345678".
 //defenv Self() :- '152.3.136.26:446'.
 
 //defenv Selfie() :-
@@ -297,12 +298,44 @@ defcon launchInstance(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?GuestCo
     runGuestInstance($InstanceID, $Image).
     bindToAuthNID($GuestAuthNID, $GuestIP, $GuestPort, $InstanceID).
     programIsImage($Image, $ProgramType).
-    guestConf($InstanceID, $GuestConfig).
-    label("guest-instance/$GuestAuthNID").  // update this link to the guest's subject set 
+    //guestConf($InstanceID, $GuestConfig).
+    label("guest-instance/$InstanceID").  // update this link to the guest's subject set 
+  }.
+
+defcon addInstanceNID(?InstanceID, ?GuestAuthNID) :-
+  spec("adding additional network address to an instance"),
+  ?GuestIP := ipFromNetworkID(?GuestAuthNID),
+  ?GuestPort := portFromNetworkID(?GuestAuthNID),
+  {
+    bindToAuthNID($GuestAuthNID, $GuestIP, $GuestPort, $InstanceID).
+    label("guest-instance/$InstanceID").  // update this link to the guest's subject set 
+  }.
+
+defcon addInstanceConfig(?InstanceID, ?ConfName, ?ConfValue) :-
+  spec("insert new configuration to an instance set"),
+  {
+    config($InstanceID, $ConfName, $ConfValue).
+    label("guest-instance/$InstanceID").  // update this link to the guest's subject set 
+  }.
+
+defcon addInstanceCIDR(?InstanceID, ?CIDR) :-
+  spec("specifying the instance can use this CIDR block"),
+  {
+    allocate($InstanceID, $CIDR).
+    label("guest-instance/$InstanceID").  // update this link to the guest's subject set 
   }.
 
 defpost postInstanceSet(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?GuestConfig) :-
   [launchInstance(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?GuestConfig)].
+
+defpost postInstanceNID(?InstanceID, ?GuestAuthNID) :-
+  [addInstanceNID(?InstanceID, ?GuestAuthNID)].
+
+defpost postInstanceConfig(?InstanceID, ?ConfName, ?ConfValue) :-
+  [addInstanceConfig(?InstanceID, ?ConfName, ?ConfValue)].
+
+defpost postInstanceNetblock(?InstanceID, ?CIDR) :-
+  [addInstanceCIDR(?InstanceID, ?CIDR)].
 
 defcon tearDownInstance(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?GuestConfig) :-
   ?ImgSet := label($IaaS, "vm-image/?Image"), 
@@ -315,8 +348,8 @@ defcon tearDownInstance(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?Guest
     runGuestInstance($InstanceID, $Image)~
     bindToAuthNID($GuestAuthNID, $GuestIP, $GuestPort, $InstanceID)~
     programIsImage($Image, $ProgramType)~
-    guestConf($InstanceID, $GuestConfig)~
-    label("guest-instance/$GuestAuthNID"). 
+    //guestConf($InstanceID, $GuestConfig)~
+    label("guest-instance/$InstanceID"). 
   }.
 
 defpost retractInstanceSet(?InstanceID, ?Image, ?ProgramType, ?GuestAuthNID, ?GuestConfig) :-
@@ -353,7 +386,7 @@ defpost retractWorkerSet(?WorkerID, ?WorkerAuthNID, ?WorkerConfig) :-
 defcon poisonInstance(?InstanceID, ?GuestAuthNID) :-
   {
     compromised($InstanceID).
-    label("guest-instance/$GuestAuthNID"). 
+    label("guest-instance/$InstanceID"). 
   }.
 
 defpost postInstancePoison(?InstanceID, ?GuestAuthNID) :-
@@ -367,6 +400,92 @@ defcon poisonImage(?Image) :-
 
 defpost postImagePoison(?Image) :-
   [poisonImage(?Image)].
+
+
+//// Yan's additional endorser facts
+
+
+defcon addSourceRepoProperty(?Source, ?Prop, ?Value) :-
+  spec("adding source property"),
+  {
+    endorseProperty($Source, $Prop, $Value).
+    label("source/$Source").
+  }.
+
+defcon delSourceRepoProperty(?Source, ?Prop, ?Value) :-
+  spec("removing source property"),
+  {
+    endorseProperty($Source, $Prop, $Value)~
+    label("source/$Source").
+  }.
+
+
+defcon sourceToImageRuleset() :-
+  spec("Rules to infer about image properties"),
+  {
+    endorseProperty(I, P, V) :-
+      endorseProperty(S, P, V),
+      E: endorseProperty(I, "source", S),
+      trusted(E).
+    trusted("IamGood").
+    label("source/convert-anchor").
+  }.
+definit sourceToImageRuleset().
+
+
+defcon endorseImageSource(?Image, ?Source) :-
+  spec("Endorse an image has specified source repo"),
+  ?SourceSet := label("source/?Source"),
+  {
+    link($SourceSet).
+    endorseProperty($Image, "source", $Source).
+    label("vm-image/$Image").
+  }.
+
+defpost postImageSource(?Image, ?Source) :- [endorseImageSource(?Image, ?Source)].
+
+defpost postSourceProperty(?Source, ?Prop, ?Value) :- [addSourceRepoProperty(?Source, ?Prop, ?Value)].
+defpost removeSourceProperty(?Source, ?Prop, ?Value) :- [delSourceRepoProperty(?Source, ?Prop, ?Value)].
+
+//defpost postLocalSourcePropertyExpectation(?Source, ?Prop, ?Config, ?Expeceted) :- [addSourcePropertyExpectation(?Source, ?Prop, ?Config, ?Expected)].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// change "image" to "AuthNID"
+defguard checkSourceProperty(?Image, ?Prop, ?Value) :-
+	?ImageSet := label("vm-image/?Image"),
+	?SourcePolicySet := label("source/convert-anchor"),
+	{
+	  link($ImageSet).
+	  link($SourcePolicySet).
+	  endorseProperty($Image, $Prop, $Value)?
+	}.
+
+//// End of Yan's construct
+
 
 defguard workerAccessesObject(?WorkerID, ?ObjectID) :-
   ?DataOwner := rootPrincipal(?ObjectID),
@@ -446,6 +565,7 @@ defcon anchorSet() :-
   //DeploymentPolicy := label("deployment-policy"),
   {
     trustedCloudProvider($IaaS).
+    builderImage($BuilderImage).
     link($AttestationPolicy).
     link($ProgramPrivilegePolicy).
     link($AttesterImageEndorsingPolicy).

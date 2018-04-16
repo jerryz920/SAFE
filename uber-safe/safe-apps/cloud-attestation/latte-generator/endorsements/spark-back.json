@@ -1,0 +1,88 @@
+{
+  "envs": {
+    "Source": "https://github.com/intel/hibench.git"
+  },
+  "attestations" : {
+    "inFile": {
+      "args": [
+        "?Image",
+        "?ArgName"
+      ],
+      "exprs": [
+      ],
+      "facts": [
+        "parameterizedEndorse($Image, \"inFile\", $ArgName)",
+        "label(\"endorsements/$Image\")"
+      ]
+    },
+
+    "outFile": {
+      "args": [
+        "?Image",
+        "?ArgName"
+      ],
+      "facts": [
+        "parameterizedEndorse($Image, \"outFile\", $ArgName)",
+        "label(\"endorsements/$Image\")"
+      ]
+    },
+
+    "columnUsed" : {
+      "args": [
+        "?Image",
+        "?FileNameArg",
+        "?ColumnArg"
+      ],
+      "facts": [
+        "parameterizedColumnUsed($Image, $FileNameArg, $ColumnArg)",
+        "label(\"endorsements/$Image\")"
+      ]
+    },
+
+    "columnAggregated" : {
+      "args": [
+        "?Image",
+        "?FileNameArg",
+        "?ColumnArg",
+	      "?OpText"
+      ],
+      "facts": [
+        "parameterizedColumnAggregated($Image, $FileNameArg, $ColumnArg, $OpText)",
+        "label(\"endorsements/$Image\")"
+      ]
+    },
+
+    "stateless": {
+      "args": [
+	      "?Image"
+      ],
+      "facts": [
+        "endorse($Image, \"stateless\", 1)",
+        "label(\"endorsements/$Image\")"
+      ]
+    },
+
+    "outputGuard" : {
+      "args": [
+        "Image",
+        "OutfileArg",
+        "GuardArg"
+      ],
+      "facts": {
+        "parameterizedOutputGuard($Image, $OutFileArg, $GuardArg)",
+        "label(\"Image/$Image\")"
+      }
+    }
+  },
+  "rules": {
+    "sparkSourceToImageTransformationRules": [
+      [
+        "runsOutputGuard(Image, OutputFile, GuardText)",
+        ""
+      ]
+    ],
+    "sparkJobImageRules": [
+
+    ]
+  }
+}

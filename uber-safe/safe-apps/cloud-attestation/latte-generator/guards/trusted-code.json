@@ -1,0 +1,59 @@
+{
+  "name": "TrustedCode",
+  "comment-envs": "the TrustedSourceProperty should be some meaningful property",
+  "envs": {
+    "TrustedSource1": "https://github.com/jerryz920/boot2docker",
+    "TrustedSource2": "https://github.com/jerryz920/docker",
+    "TrustedSource3": "https://github.com/jerryz920/spark",
+    "TrustedSourceProperty": "0x1234567"
+  },
+  "comment-trustwallet": "it defines additional trusts besides those from endorsers",
+  "trustWallet": [
+      "trustedSource($TrustedSource1)",
+      "trustedSource($TrustedSource2)",
+      "trustedSource($TrustedSource3)"
+  ],
+  "comment-trusted-endorsers": "designate how to fetch corresponding endorsement file",
+  "trustedEndorsers": [
+    "file:///spark.json"
+  ],
+  "comment-rules": "These rules are used for helper, will be linked on TrustedCode set",
+  "rules": [
+    [
+      "checkTrustedImage(Image)",
+      "E: imageProperty(Image, $TrustedSourceProperty, 1)",
+      "trustedEndorserOn($TrustedSourceProperty, E)"
+    ],
+    [
+      "checkTrustedImage(Image)",
+      "buildsFrom(Image, Source)",
+      "checkTrustedSource(Source)"
+    ],
+    [
+      "checkTrustedSource(Source)",
+      "trustedSource(Source)"
+    ],
+    [
+      "checkTrustedSource(Source)",
+      "E: imageProperty(Source, $TrustedSourceProperty, 1)",
+      "trustedEndorserOn($TrustedSourceProperty, E)"
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "TrustedCode": {
+      "args": ["?Image"],
+      "expr": [
+	"?TrustWallet", ":=", "label($IaaS, \"trustWallet\")",
+	"?HelperSet", ":=", "label($IaaS, \"local/TrustedCode\")"
+      ],
+      "links": [
+	"$TrustWallet",
+	"$HelperSet",
+	"$LibrarySet"
+      ],
+      "guard": "checkTrustedImage($Image)"
+    }
+  }
+}

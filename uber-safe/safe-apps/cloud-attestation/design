@@ -1,0 +1,40 @@
+
+Core statements:
+
+ these statements are stored securely inside the metadata service (Riak and Safe)
+
+Authentication layer:
+
+ the authentication layer maps AuthID to UUID. There will not be any AuthID inside core logic
+
+ All previous call will have:
+ 	principal field substituted
+	any address related field substituted or striped
+
+Endorsements:
+ endorsements from builder will go into the metadata service
+
+
+garbage collection:
+ host instance is responsible for cleaning guest instance statements using its AuthID or UUID.
+ 
+ image creator is responsible for cleaning out image using its
+ UUID. One must specify the life type of this image: instance, VM, or IaaS.
+ For instance type, the image will be clearing out if instance is no longer
+ alive. Same for VM. For IaaS type, the image should be registered to IaaS as
+ the tenant of the VM. The reason to enforce the VM tenant to own this image is
+ due to the fact that a host tenant might not have IaaS account. Further, VM
+ credential can be stored in per-VM metadata service, while other instances still
+ needs a way to fetch their credential.
+ 
+ There is a timeout for VM to do heartbeet for metadata service using its
+ AuthID. VM is responsible for clearing out the zombie guest. The garbage
+ collection service will scan the statement every timeout, and record the
+ unresponsive VM instance. If a VM is hit twice in a row, the recursive clean
+ on this VM will be started.
+ 
+
+
+ 
+
+

@@ -1,0 +1,331 @@
+#!/usr/bin/env python3
+import json
+import sys
+
+from latte_types import Slang, Expression, Endorsement, Guard
+
+def add_envs(slang, conf):
+    # special properties
+    slang.add_env("IaaS", "\"1.1.1.1\"")
+    slang.add_env("IaaSGid", "\"0\"")
+    slang.add_env("PropertySource", "\"source\"")
+    slang.add_env("PropertyBuilder", "\"builder\"")
+    slang.add_env("PropertyAttester", "\"attester\"")
+    slang.add_env("PropertyNossh", "\"nossh\"")
+    slang.add_env("PropertyDns", "\"dns\"")
+    slang.add_env("PropertyPackage", "\"package\"")
+    slang.add_env("PropertyPackageVersion", "\"packageVersion\"")
+    slang.add_env("PropertyPackageSource", "\"packageSource\"")
+
+def add_trust_wallet(slang, conf):
+    # predefined trusts, we could use it for trustwallet
+    trustSet = slang.add_ruleset("trustWallet")
+    trustSet.add_fact("trustedCloudProvider", "$IaaS")
+    trustSet.add_fact("trustedCloudProvider", "$IaaSGid")
+    trustSet.add_fact("tapconImageSource", "\"https://github.com/jerryz920/boot2docker.git#dev\"")
+    trustSet.add_fact("tapconDaemonSource", "\"https://github.com/jerryz920/docker.git#tapcon\"")
+    trustSet.add_fact("tapconKernelSource", "\"https://github.com/jerryz920/linux.git#tapcon-v4.4\"")
+    trustSet.add_fact("approvedDns", "\"8.8.8.8\"")
+    trustSet.add_fact("builderImage", '"' + conf.builder + '"')
+
+def add_latte_statements(slang, conf):
+
+    # Self is an InstanceID (UUID)
+    slang.add_attestation_str("InstanceSet",
+            ["?Instance", "?Image", "?AuthID"],
+            [
+                Expression("ImgSet", ":=", "label(\"image/?Image\")"),
+                Expression("HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+            ], 
+            "link($ImgSet)",
+            "link($HostSet)",
+            "runs($Instance, $Image)",
+            "bindToId($Instance, $GuestIP, $GuestPorts)",
+            "label(\"instance/$Instance\")"
+            )
+
+    slang.add_attestation_str("VMInstanceSet",
+            ["?Instance", "?Image", "?AuthID", "?Cidr"],
+            [
+                Expression("ImgSet", ":=", "label(\"endorsements/?Image\")"),
+                Expression("HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+            ], 
+            "link($ImgSet)",
+            "link($HostSet)",
+            "runs($Instance, $Image)",
+            "allocate($GuestIP, $Cidr)",
+            "bindToId($Instance, $GuestIP, $GuestPorts)",
+            "label(\"instance/$Instance\")"
+            )
+
+    slang.add_attestation_str("InstanceAuthID",
+            ["?Instance", "?AuthID"],
+            [
+                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+            ],
+            "bindToId($Instance, $GuestIP, $GuestPorts)",
+            "label(\"instance/$Instance\")"
+            )
+
+
+    for i in range(1,6):
+        args = ["?Instance"]
+        facts = []
+        for j in range(1, i + 1):
+            args.append("?Config%d" % j)
+            args.append("?Value%d" % j)
+            facts.append("config($Instance, $Config%d, $Value%d)" % (j, j))
+        facts.append("label(\"instance/$Instance\")")
+        slang.add_attestation_str("InstanceConfig%d" % i,
+                args,
+                [],
+                *facts)
+
+
+    slang.add_attestation_str("InstanceControl",
+            ["?Host", "?Guest"],
+            [
+                Expression("?InstanceSet", ":=", "label(?Host, \"instance/?Guest\")"),
+            ], 
+            "link($InstanceSet)",
+            "controls($Host, $Guest)",
+            "label(\"control/$Guest\")"
+            )
+
+    slang.add_attestation_str("Endorsement",
+            ["?Target", "?Prop", "?Value"],
+            [],
+            "endorse($Target, $Prop, $Value)",
+            "label(\"endorsements/$Target\")"
+            )
+
+    slang.add_attestation_str("ConditionalEndorsement",
+            ["?Target", "?Key", "?Expected", "?Prop", "?Value"],
+            [],
+            "endorseIfEqual($Target, $Key, $Expected, $Prop, $Value)",
+            "label(\"endorsements/$Target\")"
+            )
+
+    slang.add_attestation_str("ParameterizedEndorsement",
+            ["?Target", "?Prop", "?ConfName"],
+            [],
+            "link($TargetSet)",
+            "parameterizedEndorse($Target, $Prop, $ConfName)",
+            "label(\"endorsements/$Target\")"
+            )
+
+    slang.add_attestation_str("Cluster",
+            ["?Cluster", "?OwnerGuard", "?JoinerGuard"],
+            [],
+            "cluster($Cluster)",
+            "ownerGuard($OwnerGuard)",
+            "joinerGuard($JoinerGuard)",
+            "label(\"cluster/$Self\")"
+            )
+
+    slang.add_attestation_str("Membership",
+            ["?Cluster", "?WorkerID"],
+            [],
+            "member($Cluster, $WorkerID)",
+            "label(\"cluster/$Self\")"
+            )
+
+    slang.add_attestation_str("AckMembership",
+            ["?Cluster", "?MasterID"],
+            [
+                Expression("?MasterSet", ":=", "label(?MasterID, \"cluster/?MasterID\")")
+            ],
+            "link($MasterSet)",
+            "join($Cluster, $MasterID)",
+            "label(\"instance/$Self\")", # spoken for itself
+            )
+
+    slang.add_attestation_str("ParameterizedConnection",
+            ["?Target", "?Service", "?ConfName"],
+            [],
+            "parameterizedConnection($Target, $Service, $ConfName)",
+            "label(\"endorsements/$Target\")"
+            )
+
+def add_latte_lib(slang, conf):
+    librarySet = slang.add_ruleset("libraryRules")
+
+    # controls
+    librarySet.add_rule_str(
+            "controls(Host, Guest)",
+            "IaaS : controls(Host, Guest)",
+            "trustedCloudProvider(IaaS)")
+
+    #librarySet.add_rule_str(
+    #        "contains(HostAddr, GuestAddr)",
+    #        "IaaSAddr: allocate(HostAddr, CIDR)",
+    #        "trustedCloudProvider($IaaSAddr)",
+    #        "cidrContains(CIDR, GuestAddr)")
+
+    #librarySet.add_rule_str(
+    #        "contains(HostAddr, GuestAddr)",
+    #        "ipPortContains(HostAddr, GuestAddr)")
+
+    # hasConfig
+    librarySet.add_rule_str(
+            "hasConfig(Instance, ConfName, ConfValue)",
+            "H: config(Instance, ConfName, ConfValue)",
+            "controls(H, Guest)",
+            "attester(H)")
+
+    # launches
+    librarySet.add_rule_str(
+            "launches(Instance, Image)",
+            "H: runs(Instance, Image)",
+            "controls(H, Instance)",
+            "attester(H)")
+
+    librarySet.add_rule_str(
+            "attester(Instance)",
+            "checkProperty(Instance, $PropertyAttester, 1)")
+
+    librarySet.add_rule_str(
+            "attester(Instance)",
+            "trustedCloudProvider(Instance)")
+
+
+    librarySet.add_rule_str(
+            "builder(Instance)",
+            "checkProperty(Instance, $PropertyBuilder, 1)")
+    librarySet.add_rule_str(
+            "builder(Instance)",
+            "launches(Instance, Image)",
+            "builderImage(Image)")
+
+    librarySet.add_rule_str(
+            "buildsFrom(Image, Source)",
+            "B: endorse(Image, $PropertySource, Source)",
+            "builder(B)")
+
+    librarySet.add_rule_str(
+            "packageBuildsFrom(Image, Package, Source)",
+            "B: packageSource(Image, Package, Source)",
+            "trustedEndorserOn(\"packageSource\", B)")
+
+    librarySet.add_rule_str(
+            "imageProperty(Image, Property, Value)",
+            "E : endorse(Image, Property, Value)",
+            "trustedEndorserOn(Property, E)")
+
+    librarySet.add_rule_str(
+            "imageProperty(Image, Property, Value)",
+            "buildsFrom(Image, Source)",
+            "E: endorse(Source, Property, Value)",
+            "trustedEndorserOn(Property, E)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E : endorse(Image, Property, Value)",
+            "trustedEndorserOn(Property, E)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E : endorse(Image, Property, Value)",
+            "B: endorse(Image, $PropertySource, Source)",
+            "trustedEndorserOn(Property, E)",
+            "builder(B)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E : parameterizedEndorse(Image, Property, ConfName)",
+            "hasConfig(Instance, ConfName, Value)",
+            "trustedEndorserOn(Property, E)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E: parameterizedEndorse(Source, Property, ConfName)",
+            "B: endorse(Image, $PropertySource, Source)"
+            "hasConfig(Instance, ConfName, Value)",
+            "trustedEndorserOn(Property, E)",
+            "builder(B)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E : endorseIfEqual(Image, Key, Expected, Property, Value)",
+            "hasConfig(Instance, Key, Real)",
+            "Real = Expected",
+            "trustedEndorserOn(Property, E)")
+
+    librarySet.add_rule_str(
+            "checkProperty(Instance, Property, Value)",
+            "launches(Instance, Image)",
+            "E : endorseIfEqual(Source, Key, Expected, Property, Value)",
+            "B : endorse(Image, $PropertySource, Source)"
+            "hasConfig(Instance, Key, Real)",
+            "Real = Expected",
+            "trustedEndorserOn(Property, E)",
+            "builder(B)")
+
+    librarySet.add_rule_str(
+            "sourceCheck(Instance, Package, Source)",
+            "launches(Instance, Image)",
+            "packageBuildsFrom(Image, Package, Source)")
+
+    librarySet.add_rule_str(
+            "memberCheck(Instance, Cluster, Master)",
+            "Master: member(Cluster, Instance)",
+            "Instance: join(Cluster, Master)")
+
+    librarySet.add_rule_str(
+            "memberCheck(Instance, Cluster, Master)",
+            "Master: member(Cluster, Instance)",
+            "trustedCloudProvider(Master)")
+
+    librarySet.add_rule_str(
+            "connection(Instance, Package, Ep)",
+            "launches(Instance, Image)",
+            "E:parameterizedConnection(Image, Package, ConfKey)",
+            "hasConfig(Instance, ConfKey, Ep)",
+            "trustedEndorserOn(\"parameterizedConnection\", E)")
+
+    librarySet.add_rule_str(
+            "connection(Instance, Package, Ep)",
+            "launches(Instance, Image)",
+            "buildsFrom(Image, Source)",
+            "E:parameterizedConnection(Source, Package, ConfKey)",
+            "hasConfig(Instance, ConfKey, Ep)",
+            "trustedEndorserOn(\"parameterizedConnection\", E)")
+
+def load_endorsement_file(slang, fname):
+
+    try:
+        with open(fname, "r") as f:
+            v = json.load(f)
+            slang.add_endorsement(Endorsement(v["name"], v["speaker"],
+                v["attestations"], v["rules"], v["envs"]))
+    except Exception as e: 
+        sys.stderr.write("Json parse exception in loading endorsements %s" % e.message)
+        raise
+
+def load_endorsements(slang, conf):
+    for efile in conf.endorsements:
+        load_endorsement_file(slang, efile)
+
+def load_guard_file(slang, fname):
+    try:
+        with open(fname, "r") as f:
+            v = json.load(f)
+            slang.add_guards(Guard(v["name"], v["args"], v["exprs"],
+                    v["links"], v["queries"]))
+    except Exception as e: 
+        sys.stderr.write("Json parse exception in loading guards %s" % e.message)
+        raise
+
+def load_guards(slang, conf):
+    for gfile in conf.guards:
+        load_guard_file(slang, gfile)
