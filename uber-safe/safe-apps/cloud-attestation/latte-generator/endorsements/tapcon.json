@@ -18,6 +18,7 @@
 	"endorse($TapConSource, $PropertyPackage, \"docker\")",
 	"endorse($TapConSource, $PropertyPackage, \"dhcpcd\")",
 	"endorse($TapConSource, $PropertyPackage, \"syslog\")",
+	"endorse($TapConSource, $PropertyPackage, \"libc\")",
 	"packageSource($TapConSource, \"linux\", $TapConLinuxSource)",
 	"packageSource($TapConSource, \"docker\", $TapConDockerSource)",
 	"packageVersion($TapConSource, \"linux\", \"4.4.39\")",
