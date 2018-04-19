@@ -1,0 +1,49 @@
+{
+  "name": "TrustedConnection",
+  "envs": {
+    "OpenDns": "\"8.8.8.8\"",
+    "RepoAddr": "ipv4\"192.168.1.2\"",
+    "InnerNetwork": "ipv4\"192.168.0.0/24\""
+  },
+  "trustWallet": [
+      "approvedDns($OpenDns)",
+      "approvedEndpoint(\"docker\", $RepoAddr)",
+      "approvedNetwork(\"docker\", $InnertNetwork)"
+  ],
+  "rules": [
+    [
+      "approveConnections(Instance)",
+      "launches(Instance, Image)",
+      "endorse(Instance, $PropertyDns, Dns)",
+      "approvedDns(Dns)",
+      "\\+(invalidConnection(Instance, Service, Url))"
+    ],
+    [
+      "invalidConnection(Instance, Service, Url)",
+      "connection(Instance, Service, Url)",
+      [
+	"approveNetwork(Service, ApprovedNetwork)",
+	"Url <: ApprovedNetwork"
+      ],
+      [
+	"approveEndpoint(Service, Url)"
+      ]
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "TrustedConnections": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(\"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet"
+      ],
+      "queries": [
+	"approveConnections($Instance)"
+      ]
+    }
+  }
+}

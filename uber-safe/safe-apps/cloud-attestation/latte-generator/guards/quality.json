@@ -1,0 +1,55 @@
+{
+  "name": "CodeQuality",
+  "envs": {
+    "SyslogVersion": "3.9.1",
+    "DhcpVersion": "7.0.1",
+    "LinuxVersion": "4.4.39",
+    "ScannerSource": "https://github.com/swamp/swamp#master"
+  },
+  "comment-trustwallet": "it defines additional trusts besides those from endorsers",
+  "trustWallet": [
+    "requiredVersion(\"syslog\", $SyslogVersion)",
+    "requiredVersion(\"dhcp\", $DhcpVersion)",
+    "requiredVersion(\"linux\", $LinuxVersion)",
+    "scannerSource($ScannerSource)"
+  ],
+  "rules": [
+    [
+      "serviceVersionSatisfied(Instance)",
+      "\\+(invalidService(Instance, Package))",
+      "\\+(unscannedService(Instance, Package))"
+    ],
+    [
+      "invalidService(Instance, Package)",
+      "requiredVersion(Package, ExpectedVersion)",
+      "versionCheck(Instance, Package, RealVersion)",
+      "ExpectedVersion != RealVersion"
+    ],
+    [
+      "unscannedService(Instance, Package)",
+      "sourceCheck(Instance, Package, PSource)",
+      [
+	"H: endorse(PSource, \"scan-passed:token\", 1)",
+	"launches(H, Image)",
+	"buildsFrom(Image, SSource)",
+	"scannerSource(SSource)"
+      ]
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "CodeQuality": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(\"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet"
+      ],
+      "queries": [
+	"serviceVersionSatisfied($Image)"
+      ]
+    }
+  }
+}

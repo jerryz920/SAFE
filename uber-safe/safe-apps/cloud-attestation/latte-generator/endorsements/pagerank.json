@@ -6,6 +6,7 @@
   },
   "comment-name": "Name is the name of the endorsed set, one should link it",
   "name": "pageRankSourceSet",
+  "label": "$PageRankJobSource",
   "comment-speaker": "redundancy for the pubkey, should eliminate it later",
   "speaker": "0x12345678",
   "comment-attestations": "Attestations are direct facts endorsed",

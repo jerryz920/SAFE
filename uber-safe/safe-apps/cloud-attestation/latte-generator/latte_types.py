@@ -3,12 +3,15 @@
 from io import StringIO
 from utils import fact_from_str as fact_from_str_helper
 from utils import expr_from_str
+import sys
 
 
 #### IMPORTANT WORKAROUND:
 ### the fact can be expression as well!
 def fact_from_str(s):
     try:
+        if isinstance(s, list):
+            return NegateFacts(*[fact_from_str(line) for line in s])
         return fact_from_str_helper(s, Fact)
     except ValueError as e:
         try:
@@ -51,10 +54,10 @@ defpost del%(name)s(%(argslist)s) :- [ dtor%(name)s(%(argslist)s) ].
 
 class Endorsement(object):
 
-    def __init__(self, name, speaker, facts, rules, envs):
+    def __init__(self, name, label, speaker, facts, rules, envs):
         self.speaker = speaker
         self.trust_wallet = []
-        self.ruleset = Ruleset(name)
+        self.ruleset = Ruleset(name, label)
         self.ruleset.add_fact_str(*facts)
         for r in rules:
             self.ruleset.add_rule_str(r[0], *r[1:])
@@ -69,6 +72,13 @@ class Env(object):
     def __init__(self, name, value):
         self.name = name
         self.value = value
+        if self.value.startswith("@"):
+            with open(self.value[1:], "r") as f:
+                self.value = f.read()
+                self.value = self.value.replace('\\', '\\\\')
+                self.value = self.value.replace('"', '\\"')
+                self.value = self.value.replace('\'', '\\\'')
+                self.value = '"' + self.value + '"'
 
     def to_str(self):
         return "defenv %s() :- %s." % (self.name, self.value)
@@ -104,6 +114,18 @@ class Fact(object):
         else:
             return "%s\+(%s(%s))" % (prefix, self.pred, ",".join(self.args))
 
+class NegateFacts(object):
+    def __init__(self, *facts):
+        self.facts = facts
+
+    def to_str(self):
+        formats = {
+                "factlist": ",".join(["\n        %s" % f.to_str() for f in self.facts])
+        }
+        return '''\+(%(factlist)s
+      )''' % formats 
+
+
 class Rule(object):
     def __init__(self, head, facts):
         self.head = head
@@ -115,10 +137,13 @@ class Rule(object):
 
 class Ruleset(object):
 
-    def __init__(self, name):
+    def __init__(self, name, label=None):
         self.name = name
         self.exprs = []
-        self.facts = [Fact("label", '"' + name + '"')]
+        if label:
+            self.facts = [Fact("label", '"' + label + '"')]
+        else:
+            self.facts = [Fact("label", '"' + name + '"')]
         self.rules = []
 
     def add_fact(self, predicate, *args, **kwargs):
@@ -170,23 +195,30 @@ class Guard(object):
 
     def __init__(self, name, args, exprs, links, *queries):
         self.name = name
-        self.args = []
+        self.args = args
         self.exprs = exprs
         self.links = links
         self.queries = queries
 
     def to_str(self):
+        exprlist = "\n  ".join([stmt.to_str() + "," for stmt in self.exprs])
+        if len(self.exprs) > 0:
+            exprlist = "\n  " + exprlist
+        linklist = "\n    ".join([("link(%s)." % link) for link in self.links])
+        querylist = "\n    ".join([q.to_str() + "?" for q in self.queries])
+        if len(self.queries) > 0 and len(self.links) > 0:
+            querylist = "\n    " + querylist
         formats = {
             "name": self.name,
             "argslist": ",".join(self.args),
-            "exprlist": "\n" + ("\n".join([expr.to_str() + "," for expr in self.exprs])),
-            "linklist": "\n".join([("link(%s)." % link) for link in self.links]),
-            "querylist": "\n" + ("\n".join([query.to_str() + "?" for fact in self.queries])),
+            "exprlist": exprlist, 
+            "linklist": linklist,
+            "querylist": querylist,
         }
         return '''\ndefguard check%(name)s(%(argslist)s) :- %(exprlist)s
-{
+  {
     %(linklist)s%(querylist)s
-}.
+  }.
 ''' % formats
 
 def _c(s):

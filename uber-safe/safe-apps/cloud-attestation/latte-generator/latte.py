@@ -2,7 +2,9 @@
 import json
 import sys
 
-from latte_types import Slang, Expression, Endorsement, Guard
+from latte_types import Slang, Expression, Endorsement, Guard, Fact
+from utils import fact_from_str
+from constants import *
 
 def add_envs(slang, conf):
     # special properties
@@ -34,13 +36,15 @@ def add_latte_statements(slang, conf):
     slang.add_attestation_str("InstanceSet",
             ["?Instance", "?Image", "?AuthID"],
             [
-                Expression("ImgSet", ":=", "label(\"image/?Image\")"),
+                Expression("ImgSet", ":=", "label(\"endorsements/?Image\")"),
                 Expression("HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
                 Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
             "link($ImgSet)",
             "link($HostSet)",
+            "runs($ControlSet)",
             "runs($Instance, $Image)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
@@ -51,11 +55,13 @@ def add_latte_statements(slang, conf):
             [
                 Expression("ImgSet", ":=", "label(\"endorsements/?Image\")"),
                 Expression("HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
                 Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
             "link($ImgSet)",
             "link($HostSet)",
+            "runs($ControlSet)",
             "runs($Instance, $Image)",
             "allocate($GuestIP, $Cidr)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
@@ -72,6 +78,15 @@ def add_latte_statements(slang, conf):
             "label(\"instance/$Instance\")"
             )
 
+    slang.add_attestation_str("InstanceAuthKey",
+            ["?Instance", "?AuthID", "?AuthKey"],
+            [
+                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+            ],
+            "bindToId($Instance, $GuestIP, $GuestPorts, $AuthKey)",
+            "label(\"instance/$Instance\")"
+            )
 
     for i in range(1,6):
         args = ["?Instance"]
@@ -85,14 +100,19 @@ def add_latte_statements(slang, conf):
                 args,
                 [],
                 *facts)
+    slang.add_attestation_str("InstanceCidrConfig",
+            ["?Instance", "?Config", "?NetParam"],
+            [
+                Expression("?IP", ":=", "ipFromNetworkID(?NetParam)")
+            ],
+            "config($Instance, $Config, $IP)",
+            "label(\"instance/$Instance\")"
+            )
 
-
+    # should always be called by IaaS provider
     slang.add_attestation_str("InstanceControl",
             ["?Host", "?Guest"],
-            [
-                Expression("?InstanceSet", ":=", "label(?Host, \"instance/?Guest\")"),
-            ], 
-            "link($InstanceSet)",
+            [ ], 
             "controls($Host, $Guest)",
             "label(\"control/$Guest\")"
             )
@@ -209,72 +229,85 @@ def add_latte_lib(slang, conf):
 
     librarySet.add_rule_str(
             "packageBuildsFrom(Image, Package, Source)",
-            "B: packageSource(Image, Package, Source)",
-            "trustedEndorserOn(\"packageSource\", B)")
+            "packageSource(Image, Package, Source)")
+
+    librarySet.add_rule_str(
+            "packageBuildsFrom(Image, Package, Source)",
+            "buildsFrom(Image, ISource)",
+            "packageSource(ISource, Package, Source)")
 
     librarySet.add_rule_str(
             "imageProperty(Image, Property, Value)",
-            "E : endorse(Image, Property, Value)",
-            "trustedEndorserOn(Property, E)")
+            "endorse(Image, Property, Value)")
 
     librarySet.add_rule_str(
             "imageProperty(Image, Property, Value)",
             "buildsFrom(Image, Source)",
-            "E: endorse(Source, Property, Value)",
-            "trustedEndorserOn(Property, E)")
+            "endorse(Source, Property, Value)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E : endorse(Image, Property, Value)",
-            "trustedEndorserOn(Property, E)")
+            "endorse(Image, Property, Value)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E : endorse(Image, Property, Value)",
+            "endorse(Image, Property, Value)",
             "B: endorse(Image, $PropertySource, Source)",
-            "trustedEndorserOn(Property, E)",
             "builder(B)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E : parameterizedEndorse(Image, Property, ConfName)",
-            "hasConfig(Instance, ConfName, Value)",
-            "trustedEndorserOn(Property, E)")
+            "parameterizedEndorse(Image, Property, ConfName)",
+            "hasConfig(Instance, ConfName, Value)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E: parameterizedEndorse(Source, Property, ConfName)",
+            "parameterizedEndorse(Source, Property, ConfName)",
             "B: endorse(Image, $PropertySource, Source)"
             "hasConfig(Instance, ConfName, Value)",
-            "trustedEndorserOn(Property, E)",
             "builder(B)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E : endorseIfEqual(Image, Key, Expected, Property, Value)",
+            "endorseIfEqual(Image, Key, Expected, Property, Value)",
             "hasConfig(Instance, Key, Real)",
-            "Real = Expected",
-            "trustedEndorserOn(Property, E)")
+            "Real = Expected")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "E : endorseIfEqual(Source, Key, Expected, Property, Value)",
+            "endorseIfEqual(Source, Key, Expected, Property, Value)",
             "B : endorse(Image, $PropertySource, Source)"
             "hasConfig(Instance, Key, Real)",
             "Real = Expected",
-            "trustedEndorserOn(Property, E)",
             "builder(B)")
 
     librarySet.add_rule_str(
             "sourceCheck(Instance, Package, Source)",
             "launches(Instance, Image)",
             "packageBuildsFrom(Image, Package, Source)")
+
+    librarySet.add_rule_str(
+            "sourceCheck(Instance, Package, Source)",
+            "launches(Instance, Image)",
+            "buildsFrom(Image, ISource)",
+            "packageBuildsFrom(ISource, Package, Source)")
+
+    librarySet.add_rule_str(
+            "versionCheck(Instance, Package, Version)",
+            "launches(Instance, Image)",
+            "packageVersion(Image, Package, Source)")
+
+    librarySet.add_rule_str(
+            "versionCheck(Instance, Package, Version)",
+            "launches(Instance, Image)",
+            "buildsFrom(Image, ISource)",
+            "packageVersion(ISource, Package, Source)")
 
     librarySet.add_rule_str(
             "memberCheck(Instance, Cluster, Master)",
@@ -289,27 +322,26 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "connection(Instance, Package, Ep)",
             "launches(Instance, Image)",
-            "E:parameterizedConnection(Image, Package, ConfKey)",
-            "hasConfig(Instance, ConfKey, Ep)",
-            "trustedEndorserOn(\"parameterizedConnection\", E)")
+            "parameterizedConnection(Image, Package, ConfKey)",
+            "hasConfig(Instance, ConfKey, Ep)")
 
     librarySet.add_rule_str(
             "connection(Instance, Package, Ep)",
             "launches(Instance, Image)",
             "buildsFrom(Image, Source)",
-            "E:parameterizedConnection(Source, Package, ConfKey)",
-            "hasConfig(Instance, ConfKey, Ep)",
-            "trustedEndorserOn(\"parameterizedConnection\", E)")
+            "parameterizedConnection(Source, Package, ConfKey)",
+            "hasConfig(Instance, ConfKey, Ep)")
 
 def load_endorsement_file(slang, fname):
 
     try:
         with open(fname, "r") as f:
             v = json.load(f)
-            slang.add_endorsement(Endorsement(v["name"], v["speaker"],
-                v["attestations"], v["rules"], v["envs"]))
+            slang.add_endorsement(Endorsement(v["name"], 
+                "endorsements/%s" % v["label"], v["speaker"],
+                v.get("attestations", []), v.get("rules", []), v.get("envs", {})))
     except Exception as e: 
-        sys.stderr.write("Json parse exception in loading endorsements %s" % e.message)
+        sys.stderr.write("Json parse exception in loading endorsements %s, %s\n" % (fname, e))
         raise
 
 def load_endorsements(slang, conf):
@@ -320,10 +352,25 @@ def load_guard_file(slang, fname):
     try:
         with open(fname, "r") as f:
             v = json.load(f)
-            slang.add_guards(Guard(v["name"], v["args"], v["exprs"],
-                    v["links"], v["queries"]))
+            rulesetName = v["name"] + "GuardRuleSet"
+            slang.add_endorsement(Endorsement(rulesetName, None, "",
+                v.get("trustWallet", []), v.get("rules", []), v.get("envs", {})))
+            for name, g in v.get("guards", {}).items():
+                exprs = [Expression(e[0], e[1], e[2]) for e in g.get("exprs", [])]
+                exprs.append(Expression("?HelperRuleSet", ":=", 
+                    "label(\"%s\")" % rulesetName))
+                exprs.append(Expression("?TrustWallet", ":=", 
+                    "label(\"%s\")" % TrustWallet))
+                exprs.append(Expression("?LibrarySet", ":=", 
+                    "label(\"%s\")" % LatteLibrary))
+                links = g.get("links", [])
+                links.append("$HelperRuleSet")
+                links.append("$TrustWallet")
+                links.append("$LibrarySet")
+                queries = [fact_from_str(s, Fact) for s in g.get("queries", [])]
+                slang.add_guard(Guard(name, g["args"], exprs, links, *queries))
     except Exception as e: 
-        sys.stderr.write("Json parse exception in loading guards %s" % e.message)
+        sys.stderr.write("Json parse exception in loading guards %s, %s\n" % (fname, e))
         raise
 
 def load_guards(slang, conf):

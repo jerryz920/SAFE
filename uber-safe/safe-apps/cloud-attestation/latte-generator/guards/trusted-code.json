@@ -2,10 +2,10 @@
   "name": "TrustedCode",
   "comment-envs": "the TrustedSourceProperty should be some meaningful property",
   "envs": {
-    "TrustedSource1": "https://github.com/jerryz920/boot2docker",
-    "TrustedSource2": "https://github.com/jerryz920/docker",
-    "TrustedSource3": "https://github.com/jerryz920/spark",
-    "TrustedSourceProperty": "0x1234567"
+    "TrustedSource1": "\"https://github.com/jerryz920/boot2docker\"",
+    "TrustedSource2": "\"https://github.com/jerryz920/docker\"",
+    "TrustedSource3": "\"https://github.com/jerryz920/spark\"",
+    "TrustedSourceProperty": "\"0x1234567\""
   },
   "comment-trustwallet": "it defines additional trusts besides those from endorsers",
   "trustWallet": [
@@ -13,16 +13,11 @@
       "trustedSource($TrustedSource2)",
       "trustedSource($TrustedSource3)"
   ],
-  "comment-trusted-endorsers": "designate how to fetch corresponding endorsement file",
-  "trustedEndorsers": [
-    "file:///spark.json"
-  ],
   "comment-rules": "These rules are used for helper, will be linked on TrustedCode set",
   "rules": [
     [
       "checkTrustedImage(Image)",
-      "E: imageProperty(Image, $TrustedSourceProperty, 1)",
-      "trustedEndorserOn($TrustedSourceProperty, E)"
+      "imageProperty(Image, $TrustedSourceProperty, 1)"
     ],
     [
       "checkTrustedImage(Image)",
@@ -35,8 +30,7 @@
     ],
     [
       "checkTrustedSource(Source)",
-      "E: imageProperty(Source, $TrustedSourceProperty, 1)",
-      "trustedEndorserOn($TrustedSourceProperty, E)"
+      "imageProperty(Source, $TrustedSourceProperty, 1)"
     ]
   ],
 
@@ -44,16 +38,15 @@
   "guards": {
     "TrustedCode": {
       "args": ["?Image"],
-      "expr": [
-	"?TrustWallet", ":=", "label($IaaS, \"trustWallet\")",
-	"?HelperSet", ":=", "label($IaaS, \"local/TrustedCode\")"
+      "exprs": [
+	["?ImageSet", ":=", "label(\"endorsements/?Image\")"]
       ],
       "links": [
-	"$TrustWallet",
-	"$HelperSet",
-	"$LibrarySet"
+	"$ImageSet"
       ],
-      "guard": "checkTrustedImage($Image)"
+      "queries": [
+	"checkTrustedImage($Image)"
+      ]
     }
   }
 }
