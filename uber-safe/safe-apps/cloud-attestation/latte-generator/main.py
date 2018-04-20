@@ -17,6 +17,8 @@ def parse_option():
     parser.add_argument("-g", "--guard", dest="guards",
                 help="the guards to host for target slang", metavar="GUARDS", 
                 nargs="+", default=[])
+    parser.add_argument("-s", "--script", dest="script",
+                help="shell scripts for testing", metavar="SCRIPT")
     return parser.parse_args()
 
 
@@ -34,6 +36,10 @@ if __name__ == "__main__":
     latte.load_guards(slang, conf)
 
     sys.stdout.write(slang.generate())
+
+    if conf.script:
+        with open(conf.script, "w") as f:
+            f.write(slang.scripts())
 
 
 #  usable sets to link against

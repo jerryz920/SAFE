@@ -52,6 +52,25 @@ defpost post%(name)s(%(argslist)s) :- [ cons%(name)s(%(argslist)s) ].
 defpost del%(name)s(%(argslist)s) :- [ dtor%(name)s(%(argslist)s) ].
 ''' % formats
 
+    def scripts(self):
+        formats = { 
+            "name": self.name,
+            "arglist": ",".join(["\\\"${%s}\\\"" % arg for arg in range(1, len(self.args) + 1)])
+        }
+        return '''
+post%(name)s() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_IP/post%(name)s -d "{ \\"principal\\": $principal, \\"otherValues\\": [%(arglist)s]}"
+}
+del%(name)s() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_IP/del%(name)s -d "{ \\"principal\\": $principal, \\"otherValues\\": [%(arglist)s]}"
+}
+        ''' % formats
+
+
 class Endorsement(object):
 
     def __init__(self, name, label, speaker, facts, rules, envs):
@@ -300,5 +319,20 @@ class Slang(object):
         for g in self.guards:
             output.write(g.to_str())
             output.write("\n")
+        return output.getvalue()
+
+    def scripts(self):
+        output = StringIO()
+        output.write('''#!/bin/bash
+
+if [ -z "$SAFE_ADDR" ]; then
+    echo ' must set SAFE_ADDR env '
+    exit 1
+fi
+
+''')
+        for stmt in self.attestations:
+            output.write(stmt.scripts())
+            output.write('\n')
         return output.getvalue()
 
