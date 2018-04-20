@@ -2,6 +2,7 @@
 
 SAFE_ADDR=http://localhost:7777
 IAAS=152.3.145.38:444
+IaaS=152.3.145.38:444
 
 source ./functions
 
@@ -34,6 +35,11 @@ done
 }
 
 time create >/dev/null 2>&1
+
+
+# endorse the source from "simulated instance" to simplify the test
+postVMInstanceSet $IAAS "vm$n" "image-builder" "128.105.104.122:1-65535" "192.168.1.0/24"
+# create source for image-vm, image-spark, image-ctn, make image-builder the builder image
 
 
 
