@@ -1,0 +1,33 @@
+{
+  "name": "TestFetch",
+  "envs": { },
+  "trustWallet": [ ],
+  "rules": [
+    [
+      "fetch(Instance)",
+      "H:runs(Instance, Image)",
+      "fetch(H)"
+    ],
+    [
+      "fetch(Instance)",
+      "H:runs(Instance, Image)",
+      "trustedCloudProvider(H)"
+    ]
+  ],
+
+  "comment-guards": "This guard only retrieves statements and do simple evaluation",
+  "guards": {
+    "Fetch": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(\"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet"
+      ],
+      "queries": [
+	"fetch($Instance)"
+      ]
+    }
+  }
+}

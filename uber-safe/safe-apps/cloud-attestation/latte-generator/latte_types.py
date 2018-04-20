@@ -55,12 +55,14 @@ defpost del%(name)s(%(argslist)s) :- [ dtor%(name)s(%(argslist)s) ].
     def scripts(self):
         formats = { 
             "name": self.name,
-            "arglist": ",".join(["\\\"${%s}\\\"" % arg for arg in range(1, len(self.args) + 1)])
+            "arglist": ",".join(["\\\"${%s}\\\"" % arg for arg in range(1, len(self.args) + 1)]),
+            "formalargs": ",".join(self.args)
         }
         return '''
 post%(name)s() {
     local principal=$1
     shift 1
+# %(formalargs)s
     curl -XPOST $SAFE_IP/post%(name)s -d "{ \\"principal\\": $principal, \\"otherValues\\": [%(arglist)s]}"
 }
 del%(name)s() {

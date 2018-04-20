@@ -44,7 +44,7 @@ def add_latte_statements(slang, conf):
             ], 
             "link($ImgSet)",
             "link($HostSet)",
-            "runs($ControlSet)",
+            "link($ControlSet)",
             "runs($Instance, $Image)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
@@ -61,7 +61,7 @@ def add_latte_statements(slang, conf):
             ], 
             "link($ImgSet)",
             "link($HostSet)",
-            "runs($ControlSet)",
+            "link($ControlSet)",
             "runs($Instance, $Image)",
             "allocate($GuestIP, $Cidr)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
