@@ -1,10 +1,6 @@
 {
   "name": "ContainerIsolation",
-  "envs": {
-    "OpenDns": "\"8.8.8.8\"",
-    "RepoAddr": "ipv4\"192.168.1.2\"",
-    "InnerNetwork": "ipv4\"192.168.0.0/24\""
-  },
+  "envs": { },
   "trustWallet": [
     "containerSpec(\"pidns\", \"default\")",
     "containerSpec(\"netns\", \"default\")",
@@ -20,7 +16,7 @@
       [
 	"containerSpec(Name, Value)",
 	"hasConfig(Instance, Name, RealValue)",
-	"Value != RealValue"
+	"\\+ (Value = RealValue)"
       ],
       "\\+ (hasConfig(Instance, \"mount\", Path))",
       "I: controls(H, Instance)",

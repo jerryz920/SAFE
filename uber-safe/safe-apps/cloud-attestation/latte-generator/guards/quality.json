@@ -1,10 +1,10 @@
 {
   "name": "CodeQuality",
   "envs": {
-    "SyslogVersion": "3.9.1",
-    "DhcpVersion": "7.0.1",
-    "LinuxVersion": "4.4.39",
-    "ScannerSource": "https://github.com/swamp/swamp#master"
+    "SyslogVersion": "\"3.9.1\"",
+    "DhcpVersion": "\"7.0.1\"",
+    "LinuxVersion": "\"4.4.39\"",
+    "ScannerSource": "\"https://github.com/swamp/swamp#master\""
   },
   "comment-trustwallet": "it defines additional trusts besides those from endorsers",
   "trustWallet": [
@@ -23,7 +23,7 @@
       "invalidService(Instance, Package)",
       "requiredVersion(Package, ExpectedVersion)",
       "versionCheck(Instance, Package, RealVersion)",
-      "ExpectedVersion != RealVersion"
+      "\\+ (ExpectedVersion = RealVersion)"
     ],
     [
       "unscannedService(Instance, Package)",

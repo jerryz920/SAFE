@@ -2,13 +2,13 @@
   "name": "TrustedConnection",
   "envs": {
     "OpenDns": "\"8.8.8.8\"",
-    "RepoAddr": "ipv4\"192.168.1.2\"",
-    "InnerNetwork": "ipv4\"192.168.0.0/24\""
+    "RepoAddr": "\"192.168.1.2\"",
+    "InnerNetwork": "\"192.168.0.0/24\""
   },
   "trustWallet": [
       "approvedDns($OpenDns)",
       "approvedEndpoint(\"docker\", $RepoAddr)",
-      "approvedNetwork(\"docker\", $InnertNetwork)"
+      "approvedNetwork(\"docker\", $InnerNetwork)"
   ],
   "rules": [
     [
