@@ -23,7 +23,7 @@
       "invalidService(Instance, Package)",
       "requiredVersion(Package, ExpectedVersion)",
       "versionCheck(Instance, Package, RealVersion)",
-      "\\+ (ExpectedVersion = RealVersion)"
+      "ExpectedVersion \\== RealVersion"
     ],
     [
       "unscannedService(Instance, Package)",

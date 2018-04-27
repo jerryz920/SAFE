@@ -23,7 +23,7 @@ def fact_from_str(s, fact_cls):
     else:
         raise ValueError("string %s is mal-format fact" % s) 
 
-EXPR_PATTERN = re.compile(r"\s*(\S+)\s*([=<>:^!&*+-/]+)\s*(.+)")
+EXPR_PATTERN = re.compile(r"\s*(\S+)\s*([=<>:^!&*+-/\\]+)\s*(.+)")
 def expr_from_str(s, expr_cls):
     m = EXPR_PATTERN.match(s)
     if m:
