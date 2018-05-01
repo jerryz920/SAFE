@@ -3,6 +3,7 @@
 import riak
 import argparse
 import constants
+import gc
 
 
 def create_config():
@@ -19,6 +20,8 @@ def create_config():
             metavar="RIAK_PROTOCOL", default="http")
     parser.add_argument("-v", "--verbose", dest="riak_verbose", nargs="?",
             const=True, metavar="RIAK_VERBOSE", default=False)
+    parser.add_argument("-g", "--garbage-collect", dest="run_gc", nargs="?", const=True,
+            metavar="GC", default=False)
     return parser.parse_args()
 
 
@@ -47,7 +50,8 @@ def list_all_keys(client, conf):
     keys = client.get_keys(bucket=b)
     if conf.riak_verbose:
         for x in keys:
-            print(x, ": \"{\n", b.get(x).data, "\n}\"\n")
+            #print("%s: {\n  %s\n}\n" % (x, b.get(x).data.replace("\n", "\n  ")))
+            print("%s\n" % (b.get(x).data))
     else:
         print(keys)
 
@@ -57,10 +61,16 @@ def show(client, conf):
     key = b.get(conf.key)
     print(key)
 
+
+def gc(client, conf):
+    gc.run_gc(client, conf)
+
+
 dispatch_table = {
         "listall": list_all_buckets,
         "listkey": list_all_keys,
-        "showkey": show
+        "showkey": show, 
+        "gc": gc
         }
 
 
@@ -73,4 +83,7 @@ if __name__ == "__main__":
         operation = "listkey"
         if conf.key:
             operation = "showkey"
+
+    if conf.run_gc:
+        operation= "gc"
     dispatch_table[operation](client, conf)

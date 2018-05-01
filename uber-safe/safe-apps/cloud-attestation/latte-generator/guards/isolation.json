@@ -16,7 +16,7 @@
       [
 	"containerSpec(Name, Value)",
 	"hasConfig(Instance, Name, RealValue)",
-	"\\+ (Value = RealValue)"
+	"Value \\== RealValue"
       ],
       "\\+ (hasConfig(Instance, \"mount\", Path))",
       "I: controls(H, Instance)",

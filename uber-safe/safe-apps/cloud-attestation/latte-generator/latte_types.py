@@ -34,6 +34,7 @@ class Attestation(object):
         formats = { 
             "name": self.name,
             "argslist": ",".join(self.args),
+            "firstarg": self.args[0],
             "exprlist": exprlist,
             "factlist": "\n    ".join([stmt.to_str() + "." for stmt in self.facts]),
             "revokelist": "\n    ".join([stmt.to_str() + "~" for stmt in self.facts])
@@ -63,12 +64,12 @@ post%(name)s() {
     local principal=$1
     shift 1
 # %(formalargs)s
-    curl -XPOST $SAFE_IP/post%(name)s -d "{ \\"principal\\": $principal, \\"otherValues\\": [%(arglist)s]}"
+    curl -XPOST $SAFE_ADDR/post%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s]}"
 }
 del%(name)s() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/del%(name)s -d "{ \\"principal\\": $principal, \\"otherValues\\": [%(arglist)s]}"
+    curl -XPOST $SAFE_ADDR/del%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s]}"
 }
         ''' % formats
 
@@ -258,6 +259,7 @@ class Slang(object):
         self.rulesets = []
         self.endorsements = []
         self.guards = []
+        self.raw = []
 
     def add_env(self, name, value):
         # env does not need a label.
@@ -282,6 +284,9 @@ class Slang(object):
     def add_guard(self, g):
         self.guards.append(g)
         return g
+
+    def add_raw_slang(self, s):
+        self.raw.append(s)
 
 
 # return a string of slang 
@@ -315,6 +320,11 @@ class Slang(object):
         output.write(_b("Interfaces for attestations"))
         for stmt in self.attestations:
             output.write(stmt.to_str())
+            output.write("\n")
+
+        output.write(_b("Raw Slang"))
+        for r in self.raw:
+            output.write(r)
             output.write("\n")
 
         output.write(_b("Guards"))

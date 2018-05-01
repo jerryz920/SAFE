@@ -8,7 +8,7 @@ from constants import *
 
 def add_envs(slang, conf):
     # special properties
-    slang.add_env("IaaS", "\"1.1.1.1\"")
+    slang.add_env("IaaS", "\"152.3.145.38:444\"")
     slang.add_env("IaaSGid", "\"0\"")
     slang.add_env("PropertySource", "\"source\"")
     slang.add_env("PropertyBuilder", "\"builder\"")
@@ -34,13 +34,13 @@ def add_latte_statements(slang, conf):
 
     # Self is an InstanceID (UUID)
     slang.add_attestation_str("InstanceSet",
-            ["?Instance", "?Image", "?AuthID"],
+            ["?Instance", "?Image", "?AuthID", "?ImageStoreOwner"],
             [
-                Expression("ImgSet", ":=", "label(\"endorsements/?Image\")"),
-                Expression("HostSet", ":=", "label(\"instance/$Self\")"),
-                Expression("ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
-                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+                Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
+                Expression("?HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
+                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
             "link($ImgSet)",
             "link($HostSet)",
@@ -51,28 +51,43 @@ def add_latte_statements(slang, conf):
             )
 
     slang.add_attestation_str("VMInstanceSet",
-            ["?Instance", "?Image", "?AuthID", "?Cidr"],
+            ["?Instance", "?Image", "?AuthID", "?Cidr", "?ImageStoreOwner", "?Vpc"],
             [
-                Expression("ImgSet", ":=", "label(\"endorsements/?Image\")"),
-                Expression("HostSet", ":=", "label(\"instance/$Self\")"),
-                Expression("ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
-                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+                Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
+                Expression("?HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
+                Expression("?VpcSet", ":=", "label($IaaS, \"vpc/?Vpc\")"),
+                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
             "link($ImgSet)",
             "link($HostSet)",
             "link($ControlSet)",
+            "link($VpcSet)",
             "runs($Instance, $Image)",
             "allocate($GuestIP, $Cidr)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
             )
 
+    for i in range(1,6):
+        args = ["?Vpc"]
+        facts = []
+        for j in range(1, i + 1):
+            args.append("?Config%d" % j)
+            args.append("?Value%d" % j)
+            facts.append("config($Vpc, $Config%d, $Value%d)" % (j, j))
+        facts.append("label(\"vpc/$Vpc\")")
+        slang.add_attestation_str("VpcConfig%d" % i,
+                args,
+                [],
+                *facts)
+
     slang.add_attestation_str("InstanceAuthID",
             ["?Instance", "?AuthID"],
             [
-                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ],
             "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
@@ -81,8 +96,8 @@ def add_latte_statements(slang, conf):
     slang.add_attestation_str("InstanceAuthKey",
             ["?Instance", "?AuthID", "?AuthKey"],
             [
-                Expression("GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ],
             "bindToId($Instance, $GuestIP, $GuestPorts, $AuthKey)",
             "label(\"instance/$Instance\")"
@@ -117,6 +132,16 @@ def add_latte_statements(slang, conf):
             "label(\"control/$Guest\")"
             )
 
+    # should always be called by the one who asserts the image
+    slang.add_attestation_str("LinkImageOwner",
+            ["?Creator", "?Image"],
+            [
+                Expression("?ImageSet", ":=", "label(?Creator, \"endorsements/?Image\")")
+            ],
+            "link($ImageSet)",
+            "label(\"control/$Image\")"
+            )
+
     slang.add_attestation_str("Endorsement",
             ["?Target", "?Prop", "?Value"],
             [],
@@ -133,15 +158,17 @@ def add_latte_statements(slang, conf):
 
     slang.add_attestation_str("ParameterizedEndorsement",
             ["?Target", "?Prop", "?ConfName"],
-            [],
-            "link($TargetSet)",
+            [ ],
             "parameterizedEndorse($Target, $Prop, $ConfName)",
             "label(\"endorsements/$Target\")"
             )
 
     slang.add_attestation_str("Cluster",
             ["?Cluster", "?OwnerGuard", "?JoinerGuard"],
-            [],
+            [
+                Expression("?MasterSet", ":=", "label(?MasterID, \"instance/?Self\")")
+            ],
+            "link($MasterSet)",
             "cluster($Cluster)",
             "ownerGuard($OwnerGuard)",
             "joinerGuard($JoinerGuard)",
@@ -171,6 +198,17 @@ def add_latte_statements(slang, conf):
             "parameterizedConnection($Target, $Service, $ConfName)",
             "label(\"endorsements/$Target\")"
             )
+
+    # Garbage collector will delete it when not used.
+    slang.add_raw_slang('''
+        defcon lazyDtorInstanceSet(?Instance) :-
+          {
+              invalid(1).
+              label("instance/?Instance").
+          }.
+
+        defpost lazyDeleteInstance(?Instance) :- [lazyDtorInstanceSet(?Instance)].
+    ''')
 
 def add_latte_lib(slang, conf):
     librarySet = slang.add_ruleset("libraryRules")
