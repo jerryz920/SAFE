@@ -9,26 +9,91 @@ fi
 postInstanceSet() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?AuthID
-    curl -XPOST $SAFE_IP/postInstanceSet -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+# ?Instance,?Image,?AuthID,?ImageStoreOwner
+    curl -XPOST $SAFE_ADDR/postInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
 }
 delInstanceSet() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceSet -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
 }
         
 
 postVMInstanceSet() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?AuthID,?Cidr
-    curl -XPOST $SAFE_IP/postVMInstanceSet -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+# ?Instance,?Image,?AuthID,?Cidr,?ImageStoreOwner,?Vpc
+    curl -XPOST $SAFE_ADDR/postVMInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
 }
 delVMInstanceSet() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delVMInstanceSet -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+    curl -XPOST $SAFE_ADDR/delVMInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
+}
+        
+
+postVpcConfig1() {
+    local principal=$1
+    shift 1
+# ?Vpc,?Config1,?Value1
+    curl -XPOST $SAFE_ADDR/postVpcConfig1 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+delVpcConfig1() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delVpcConfig1 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+        
+
+postVpcConfig2() {
+    local principal=$1
+    shift 1
+# ?Vpc,?Config1,?Value1,?Config2,?Value2
+    curl -XPOST $SAFE_ADDR/postVpcConfig2 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+}
+delVpcConfig2() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delVpcConfig2 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+}
+        
+
+postVpcConfig3() {
+    local principal=$1
+    shift 1
+# ?Vpc,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3
+    curl -XPOST $SAFE_ADDR/postVpcConfig3 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
+}
+delVpcConfig3() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delVpcConfig3 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
+}
+        
+
+postVpcConfig4() {
+    local principal=$1
+    shift 1
+# ?Vpc,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3,?Config4,?Value4
+    curl -XPOST $SAFE_ADDR/postVpcConfig4 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
+}
+delVpcConfig4() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delVpcConfig4 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
+}
+        
+
+postVpcConfig5() {
+    local principal=$1
+    shift 1
+# ?Vpc,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3,?Config4,?Value4,?Config5,?Value5
+    curl -XPOST $SAFE_ADDR/postVpcConfig5 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
+}
+delVpcConfig5() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delVpcConfig5 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
 }
         
 
@@ -36,12 +101,12 @@ postInstanceAuthID() {
     local principal=$1
     shift 1
 # ?Instance,?AuthID
-    curl -XPOST $SAFE_IP/postInstanceAuthID -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceAuthID -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
 delInstanceAuthID() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceAuthID -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceAuthID -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -49,12 +114,12 @@ postInstanceAuthKey() {
     local principal=$1
     shift 1
 # ?Instance,?AuthID,?AuthKey
-    curl -XPOST $SAFE_IP/postInstanceAuthKey -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceAuthKey -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delInstanceAuthKey() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceAuthKey -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceAuthKey -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -62,12 +127,12 @@ postInstanceConfig1() {
     local principal=$1
     shift 1
 # ?Instance,?Config1,?Value1
-    curl -XPOST $SAFE_IP/postInstanceConfig1 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig1 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delInstanceConfig1() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceConfig1 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceConfig1 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -75,12 +140,12 @@ postInstanceConfig2() {
     local principal=$1
     shift 1
 # ?Instance,?Config1,?Value1,?Config2,?Value2
-    curl -XPOST $SAFE_IP/postInstanceConfig2 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig2 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
 delInstanceConfig2() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceConfig2 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceConfig2 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
         
 
@@ -88,12 +153,12 @@ postInstanceConfig3() {
     local principal=$1
     shift 1
 # ?Instance,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3
-    curl -XPOST $SAFE_IP/postInstanceConfig3 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig3 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
 }
 delInstanceConfig3() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceConfig3 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceConfig3 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\"]}"
 }
         
 
@@ -101,12 +166,12 @@ postInstanceConfig4() {
     local principal=$1
     shift 1
 # ?Instance,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3,?Config4,?Value4
-    curl -XPOST $SAFE_IP/postInstanceConfig4 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig4 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
 }
 delInstanceConfig4() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceConfig4 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceConfig4 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\"]}"
 }
         
 
@@ -114,12 +179,12 @@ postInstanceConfig5() {
     local principal=$1
     shift 1
 # ?Instance,?Config1,?Value1,?Config2,?Value2,?Config3,?Value3,?Config4,?Value4,?Config5,?Value5
-    curl -XPOST $SAFE_IP/postInstanceConfig5 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig5 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
 }
 delInstanceConfig5() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceConfig5 -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceConfig5 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
 }
         
 
@@ -127,12 +192,12 @@ postInstanceCidrConfig() {
     local principal=$1
     shift 1
 # ?Instance,?Config,?NetParam
-    curl -XPOST $SAFE_IP/postInstanceCidrConfig -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceCidrConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delInstanceCidrConfig() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceCidrConfig -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceCidrConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -140,12 +205,25 @@ postInstanceControl() {
     local principal=$1
     shift 1
 # ?Host,?Guest
-    curl -XPOST $SAFE_IP/postInstanceControl -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstanceControl -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
 delInstanceControl() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delInstanceControl -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstanceControl -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
+}
+        
+
+postLinkImageOwner() {
+    local principal=$1
+    shift 1
+# ?Creator,?Image
+    curl -XPOST $SAFE_ADDR/postLinkImageOwner -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
+}
+delLinkImageOwner() {
+    local principal=$1
+    shift 1
+    curl -XPOST $SAFE_ADDR/delLinkImageOwner -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -153,12 +231,12 @@ postEndorsement() {
     local principal=$1
     shift 1
 # ?Target,?Prop,?Value
-    curl -XPOST $SAFE_IP/postEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delEndorsement() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -166,12 +244,12 @@ postConditionalEndorsement() {
     local principal=$1
     shift 1
 # ?Target,?Key,?Expected,?Prop,?Value
-    curl -XPOST $SAFE_IP/postConditionalEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+    curl -XPOST $SAFE_ADDR/postConditionalEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
 delConditionalEndorsement() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delConditionalEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
+    curl -XPOST $SAFE_ADDR/delConditionalEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
         
 
@@ -179,12 +257,12 @@ postParameterizedEndorsement() {
     local principal=$1
     shift 1
 # ?Target,?Prop,?ConfName
-    curl -XPOST $SAFE_IP/postParameterizedEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postParameterizedEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delParameterizedEndorsement() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delParameterizedEndorsement -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delParameterizedEndorsement -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -192,12 +270,12 @@ postCluster() {
     local principal=$1
     shift 1
 # ?Cluster,?OwnerGuard,?JoinerGuard
-    curl -XPOST $SAFE_IP/postCluster -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postCluster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delCluster() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delCluster -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delCluster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
@@ -205,12 +283,12 @@ postMembership() {
     local principal=$1
     shift 1
 # ?Cluster,?WorkerID
-    curl -XPOST $SAFE_IP/postMembership -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/postMembership -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
 delMembership() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delMembership -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/delMembership -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -218,12 +296,12 @@ postAckMembership() {
     local principal=$1
     shift 1
 # ?Cluster,?MasterID
-    curl -XPOST $SAFE_IP/postAckMembership -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/postAckMembership -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
 delAckMembership() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delAckMembership -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\"]}"
+    curl -XPOST $SAFE_ADDR/delAckMembership -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -231,11 +309,11 @@ postParameterizedConnection() {
     local principal=$1
     shift 1
 # ?Target,?Service,?ConfName
-    curl -XPOST $SAFE_IP/postParameterizedConnection -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/postParameterizedConnection -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delParameterizedConnection() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_IP/delParameterizedConnection -d "{ \"principal\": $principal, \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+    curl -XPOST $SAFE_ADDR/delParameterizedConnection -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         

@@ -2,7 +2,7 @@
 
 script=`readlink -f $0`
 workdir=`dirname $script`
-RIAK_IP=localhost
+RIAK_IP=riak
 guard="0x123456"
 
 
