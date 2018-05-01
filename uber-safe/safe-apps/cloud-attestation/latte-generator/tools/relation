@@ -1,0 +1,68 @@
+
+
+instance->host ... -> iaas
+instance->control (leaf)
+instance->control-image(always present)
+		-> Builder: image endorse
+			|
+			^
+			Builder instance -> host ... -> IaaS
+
+alive:
+	if there is host path from instance to IaaS, and all nodes are not marked
+
+RefPath:
+	if there is a path from an Alive instance to target
+
+	
+
+instance can be deleted if:
+	1. instance is not alive
+	and 
+	2. there is no Refpath to instance
+
+
+
+ip:port -> instance mapping:
+	create/remove strongly consistent
+
+	relax: ip/port assignment can not be reused for a duration. After this duration, create/remove must appear consistent
+	ip reuse prevention: API rate limit
+	port reuse prevention: 
+		still have to wait for things become consistent
+		so remove must be strongly consistent at least
+
+
+
+algorithm:
+
+	alive = {iaas: true}
+
+	checkAlive(n):
+		if alive[n]:
+		    return true
+		if n.data.has mark:
+		  alive[n] = false
+		  return false
+		for e in n.edges
+		    if e.other == instance && checkAlive(e.other):
+			alive[n] = true
+		    	return true
+
+	for n in alive:
+	  propagate(n, false)
+
+	used = {}
+	propagate(n, use-host):
+		if n in used:
+		  	return 
+		for e in n.edges:
+		  if e.other != instance:
+		    propagate(e.other, true)
+		  else if use-host:
+		    if e.other == instance:
+		      used.insert(e.other)
+		      propagate(e.other, true)
+	
+	find n not in used or alive
+
