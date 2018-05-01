@@ -33,7 +33,7 @@ def add_trust_wallet(slang, conf):
 def add_latte_statements(slang, conf):
 
     # Self is an InstanceID (UUID)
-    slang.add_attestation_str("InstanceSet",
+    slang.add_attestation_str("Instance",
             ["?Instance", "?Image", "?AuthID", "?ImageStoreOwner"],
             [
                 Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
@@ -50,7 +50,7 @@ def add_latte_statements(slang, conf):
             "label(\"instance/$Instance\")"
             )
 
-    slang.add_attestation_str("VMInstanceSet",
+    slang.add_attestation_str("VMInstance",
             ["?Instance", "?Image", "?AuthID", "?Cidr", "?ImageStoreOwner", "?Vpc"],
             [
                 Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),

@@ -6,29 +6,29 @@ if [ -z "$SAFE_ADDR" ]; then
 fi
 
 
-postInstanceSet() {
+postInstance() {
     local principal=$1
     shift 1
 # ?Instance,?Image,?AuthID,?ImageStoreOwner
-    curl -XPOST $SAFE_ADDR/postInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+    curl -XPOST $SAFE_ADDR/postInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
 }
-delInstanceSet() {
+delInstance() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_ADDR/delInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
 }
         
 
-postVMInstanceSet() {
+postVMInstance() {
     local principal=$1
     shift 1
 # ?Instance,?Image,?AuthID,?Cidr,?ImageStoreOwner,?Vpc
-    curl -XPOST $SAFE_ADDR/postVMInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
+    curl -XPOST $SAFE_ADDR/postVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
 }
-delVMInstanceSet() {
+delVMInstance() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_ADDR/delVMInstanceSet -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
+    curl -XPOST $SAFE_ADDR/delVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
 }
         
 
