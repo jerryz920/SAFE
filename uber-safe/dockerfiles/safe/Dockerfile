@@ -18,7 +18,7 @@ RUN cd ~/ && wget https://dl.bintray.com/sbt/native-packages/sbt/${SBT_VERSION}/
 RUN cd ~/ && tar -zxvf sbt-${SBT_VERSION}.tgz
 
 # Download and SAFE
-RUN cd ~/ && git clone https://github.com/RENCI-NRIG/SAFE.git
+RUN cd ~/ && git clone -b latte https://github.com/jerryz920/SAFE.git
 
 ENTRYPOINT ["/bin/bash", "/root/start.sh"]
 #ENTRYPOINT ["/bin/sh", "-c"]

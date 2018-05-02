@@ -15,6 +15,9 @@ L=3
 postLinkImageOwner $IaaS "vm-builder" "image-vm"
 postLinkImageOwner "vm1" "vm-builder" "image-ctn"
 postLinkImageOwner "ctn1" "vm-builder" "image-spark"
+postEndorsement "vm-builder" "image-vm" "source" "https://github.com/jerryz920/boot2docker"
+postEndorsement "vm-builder" "image-ctn" "source" "https://github.com/apache/spark"
+postEndorsement "vm-builder" "image-spark" "source" "https://github.com/intel/hibench"
 create() {
 for n in `seq 1 $N`; do
   echo "posting instance $n"
@@ -31,9 +34,8 @@ for n in `seq 1 $N`; do
     if [ $L -le 2 ]; then
       continue;
     fi
-    postLinkImageOwner $IaaS "vm-builder" "image-vm"
     for l in `seq 1 5`; do
-      postInstance "vm$n-spark$l" "image-spark" "192.168.$n.$m:32000-65535" "ctn1"
+      postInstance "vm$n-spark$l" "image-spark" "192.168.$n.$m:32000-65535" "vm-builder"
       postInstanceConfig5 "vm$n-ctn$m" "vm$n-spark$l" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
       postInstanceControl $IAAS "vm$n-ctn$m" "vm$n-spark$l"
     done
@@ -44,6 +46,7 @@ done
 time create >/dev/null 2>&1
 
 
+postLinkImageOwner $IaaS "vm-builder" "image-vm"
 # endorse the source from "simulated instance" to simplify the test
 postVMInstance $IAAS "vm$n" "image-builder" "128.105.104.122:1-65535" "192.168.1.0/24" $IaaS "vpc-builder"
 # create source for image-vm, image-spark, image-ctn, make image-builder the builder image
