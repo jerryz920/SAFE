@@ -13,11 +13,11 @@ def create_config():
     parser.add_argument("-k", "--key", dest="key", 
             metavar="KEY", default=None)
     parser.add_argument("-p", "--port", dest="riak_port", metavar="RIAK_PORT",
-            default=8098)
+            default=8087)
     parser.add_argument("-H", "--host", dest="riak_host", metavar="RIAK_HOST",
             default="localhost")
     parser.add_argument("-t", "--protocol", dest="riak_protocol",
-            metavar="RIAK_PROTOCOL", default="http")
+            metavar="RIAK_PROTOCOL", default="pbc")
     parser.add_argument("-v", "--verbose", dest="riak_verbose", nargs="?",
             const=True, metavar="RIAK_VERBOSE", default=False)
     parser.add_argument("-g", "--garbage-collect", dest="run_gc", nargs="?", const=True,
@@ -52,7 +52,7 @@ def list_all_keys(client, conf):
     if conf.riak_verbose:
         for x in keys:
             #print("%s: {\n  %s\n}\n" % (x, b.get(x).data.replace("\n", "\n  ")))
-            print("%s\n" % (b.get(x).data))
+            print("%s\n" % b.get(x).data)
     else:
         print(keys)
 
