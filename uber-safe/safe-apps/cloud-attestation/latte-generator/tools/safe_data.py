@@ -47,7 +47,7 @@ class SafeData(object):
         self.alive = True
         for n in self.lines[6:]:
             f = fact_from_str(self.n)
-            if f.pred == "link":
+            if f.pred == "link" or f.pred == "root":
                 if len(f.args) > 1:
                     raise Exception("Format error, label has only 1 arg")
                 self.links.append(utils.unquote(f.args[0]))

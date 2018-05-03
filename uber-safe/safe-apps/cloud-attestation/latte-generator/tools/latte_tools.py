@@ -22,6 +22,7 @@ def create_config():
             const=True, metavar="RIAK_VERBOSE", default=False)
     parser.add_argument("-g", "--garbage-collect", dest="run_gc", nargs="?", const=True,
             metavar="GC", default=False)
+    parser.add_argument("--bt", dest="bucket_type", metavar="BUCKET_TYPE", default=constants.BUCKET_TYPE)
     return parser.parse_args()
 
 
@@ -40,12 +41,12 @@ def riak_client(conf):
 
 
 def list_all_buckets(client, conf):
-    t = client.bucket_type(constants.BUCKET_TYPE)
+    t = client.bucket_type(conf.bucket_type)
     buckets= client.get_buckets(bucket_type=t)
     print(buckets)
 
 def list_all_keys(client, conf):
-    t = client.bucket_type(constants.BUCKET_TYPE)
+    t = client.bucket_type(conf.bucket_type)
     b = client.bucket(conf.bucket, bucket_type=t)
     keys = client.get_keys(bucket=b)
     if conf.riak_verbose:
@@ -56,7 +57,7 @@ def list_all_keys(client, conf):
         print(keys)
 
 def show(client, conf):
-    t = client.bucket_type(constants.BUCKET_TYPE)
+    t = client.bucket_type(conf.bucket_type)
     b = client.bucket(conf.bucket, bucket_type=t)
     key = b.get(conf.key)
     print(key)

@@ -97,8 +97,8 @@ def is_root_record(key, data):
     return key
 
 
-def construct_analyze(client):
-    t = client.bucket_type(constants.BUCKET_TYPE)
+def construct_analyze(client, conf):
+    t = client.bucket_type(conf.bucket_type)
     b = client.bucket(conf.bucket, bucket_type=t)
     keys = client.get_keys(bucket=b)
 
@@ -129,7 +129,7 @@ def construct_analyze(client):
 
 def run_gc(client, conf):
     # this method will print out the list of collectable records
-    analyze_graph = construct_analyze(client)
+    analyze_graph = construct_analyze(client, conf)
     liveness = analyze_graph.check_liveness(constants.IAAS)
     print("liveness map:")
     print(liveness)

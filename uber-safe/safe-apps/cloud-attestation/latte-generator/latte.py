@@ -37,7 +37,7 @@ def add_latte_statements(slang, conf):
             ["?Instance", "?Image", "?AuthID", "?ImageStoreOwner"],
             [
                 Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
-                Expression("?HostSet", ":=", "label(\"instance/$Self\")"),
+                Expression("?HostSet", ":=", "label($Subject, \"instance/$Self\")"),
                 Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
                 Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
@@ -54,16 +54,16 @@ def add_latte_statements(slang, conf):
             ["?Instance", "?Image", "?AuthID", "?Cidr", "?ImageStoreOwner", "?Vpc"],
             [
                 Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
-                Expression("?HostSet", ":=", "label(\"instance/$Self\")"),
-                Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
+                #Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("?VpcSet", ":=", "label($IaaS, \"vpc/?Vpc\")"),
                 Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
                 Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
             "link($ImgSet)",
-            "link($HostSet)",
-            "link($ControlSet)",
+            #"link($ControlSet)",
             "link($VpcSet)",
+            "root(\"$IaaS\")",
+            "controls($IaaS, $Instance)", # to save a link
             "runs($Instance, $Image)",
             "allocate($GuestIP, $Cidr)",
             "bindToId($Instance, $GuestIP, $GuestPorts)",
