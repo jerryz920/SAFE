@@ -4,6 +4,8 @@ internal_ip=`hostname -i`
 sed -i "/^listener.http.internal/ s:.*:listener.http.internal = 0.0.0.0\:8098:" /etc/riak/riak.conf
 sed -i "/^listener.protobuf.internal/ s:.*:listener.protobuf.internal = 0.0.0.0\:8087:" /etc/riak/riak.conf
 sed -i "/^nodename = / s:.*:nodename = riak@${internal_ip}:" /etc/riak/riak.conf
+sed -i "s/^search = off/search = on/" /etc/riak/riak.conf
+
 
 riak start
 riak ping

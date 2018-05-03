@@ -37,7 +37,7 @@ def add_latte_statements(slang, conf):
             ["?Instance", "?Image", "?AuthID", "?ImageStoreOwner"],
             [
                 Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
-                Expression("?HostSet", ":=", "label($Subject, \"instance/$Self\")"),
+                Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")"),
                 Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
                 Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
@@ -201,13 +201,13 @@ def add_latte_statements(slang, conf):
 
     # Garbage collector will delete it when not used.
     slang.add_raw_slang('''
-        defcon lazyDtorInstanceSet(?Instance) :-
+        defcon lazyDtorInstanceSet(?Instance, ?AuthID) :-
           {
               invalid(1).
-              label("instance/?Instance").
+              label("instance/$Instance").
           }.
 
-        defpost lazyDeleteInstance(?Instance) :- [lazyDtorInstanceSet(?Instance)].
+        defpost lazyDeleteInstance(?Instance, ?AuthID) :- [lazyDtorInstanceSet(?Instance, ?AuthID)].
     ''')
 
 def add_latte_lib(slang, conf):

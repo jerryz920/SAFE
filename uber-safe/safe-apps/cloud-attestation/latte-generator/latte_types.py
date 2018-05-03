@@ -37,7 +37,7 @@ class Attestation(object):
             "firstarg": self.args[0],
             "exprlist": exprlist,
             "factlist": "\n    ".join([stmt.to_str() + "." for stmt in self.facts]),
-            "revokelist": "\n    ".join([stmt.to_str() + "~" for stmt in self.facts])
+            "revokelist": ("\n    ".join([stmt.to_revoke()  for stmt in self.facts])) + "\n    invalid(1)."
         }
         return '''\ndefcon cons%(name)s(%(argslist)s) :-%(exprlist)s
   {
@@ -115,6 +115,9 @@ class Expression(object):
     def to_str(self):
         return "%s %s %s" % (self.left, self.op, self.right)
 
+    def to_revoke(self):
+        return self.to_str()
+
 
 class Fact(object):
     def __init__(self, pred, *args, **kwargs):
@@ -135,6 +138,12 @@ class Fact(object):
             return "%s%s(%s)" % (prefix, self.pred, ",".join(self.args))
         else:
             return "%s\+(%s(%s))" % (prefix, self.pred, ",".join(self.args))
+
+    def to_revoke(self):
+        if self.pred == "label":
+            return self.to_str() + "."
+        else:
+            return self.to_str() + "~"
 
 class NegateFacts(object):
     def __init__(self, *facts):
