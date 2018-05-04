@@ -201,13 +201,13 @@ def add_latte_statements(slang, conf):
 
     # Garbage collector will delete it when not used.
     slang.add_raw_slang('''
-        defcon lazyDtorInstanceSet(?Instance, ?AuthID) :-
+        defcon lazyDtorInstanceSet(?Instance) :-
           {
               invalid(1).
               label("instance/$Instance").
           }.
 
-        defpost lazyDeleteInstance(?Instance, ?AuthID) :- [lazyDtorInstanceSet(?Instance, ?AuthID)].
+        defpost lazyDeleteInstance(?Instance) :- [lazyDtorInstanceSet(?Instance)].
     ''')
 
 def add_latte_lib(slang, conf):
