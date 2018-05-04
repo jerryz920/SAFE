@@ -6,6 +6,8 @@ sed -i "/^listener.protobuf.internal/ s:.*:listener.protobuf.internal = 0.0.0.0\
 sed -i "/^nodename = / s:.*:nodename = riak@${internal_ip}:" /etc/riak/riak.conf
 sed -i "s/^search = off/search = on/" /etc/riak/riak.conf
 
+# We may start riak using SSD as volume, fix the potential privilege problem
+chown -R riak:riak /var/lib/riak
 
 riak start
 riak ping
