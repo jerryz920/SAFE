@@ -52,7 +52,10 @@ def list_all_keys(client, conf):
     if conf.riak_verbose:
         for x in keys:
             #print("%s: {\n  %s\n}\n" % (x, b.get(x).data.replace("\n", "\n  ")))
-            print("%s\n" % b.get(x).data)
+            try:
+                print("{\n  %s\n}\n" % b.get(x).data.replace("\n", "\n  "))
+            except ValueError:
+                b.get(x)
     else:
         print(keys)
 
