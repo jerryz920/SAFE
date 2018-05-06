@@ -20,6 +20,8 @@ def create_config():
             metavar="RIAK_PROTOCOL", default="pbc")
     parser.add_argument("-v", "--verbose", dest="riak_verbose", nargs="?",
             const=True, metavar="RIAK_VERBOSE", default=False)
+    parser.add_argument("-j", "--json", dest="output_json", nargs="?",
+            const=True, metavar="JSON_OUTPUT", default=False)
     parser.add_argument("-g", "--garbage-collect", dest="run_gc", nargs="?", const=True,
             metavar="GC", default=False)
     parser.add_argument("--bt", dest="bucket_type", metavar="BUCKET_TYPE", default=constants.BUCKET_TYPE)
@@ -53,7 +55,11 @@ def list_all_keys(client, conf):
         for x in keys:
             #print("%s: {\n  %s\n}\n" % (x, b.get(x).data.replace("\n", "\n  ")))
             try:
-                print("{\n  %s\n}\n" % b.get(x).data.replace("\n", "\n  "))
+                #print("{\n  %s\n}\n" % b.get(x).data.replace("\n", "\n  "))
+                if conf.output_json:
+                    print("%s\n" % b.get(x).data)
+                else:
+                    print("{\n  %s\n}\n" % b.get(x).data.replace("\n", "\n  "))
             except ValueError:
                 b.get(x)
     else:

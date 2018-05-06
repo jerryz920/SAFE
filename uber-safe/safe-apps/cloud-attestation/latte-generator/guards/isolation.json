@@ -36,10 +36,12 @@
     "ContainerIsolation": {
       "args": ["?Instance"],
       "exprs": [
-	["?InstanceSet", ":=", "label(\"instance/?Instance\")"]
+	["?HostSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?InstanceSet", ":=", "label(?Instance, \"instance/?Instance\")"]
       ],
       "links": [
-	"$InstanceSet"
+	"$InstanceSet",
+	"$HostSet"
       ],
       "queries": [
 	"containerIsolated($Instance)"

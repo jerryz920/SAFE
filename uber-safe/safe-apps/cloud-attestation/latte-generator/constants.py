@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
 
-TrustWallet = "TrustWallet"
-LatteLibrary = "LibrarySet"
+TrustWallet = "trustWallet"
+LatteLibrary = "libraryRules"
 

@@ -36,10 +36,12 @@
     "TrustedConnections": {
       "args": ["?Instance"],
       "exprs": [
-	["?InstanceSet", ":=", "label(\"instance/?Instance\")"]
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
       ],
       "links": [
-	"$InstanceSet"
+	"$InstanceSet",
+	"$HostSet"
       ],
       "queries": [
 	"approveConnections($Instance)"

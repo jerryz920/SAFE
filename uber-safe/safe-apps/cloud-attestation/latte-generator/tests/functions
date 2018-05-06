@@ -9,26 +9,26 @@ fi
 postInstance() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?AuthID,?ImageStoreOwner
-    curl -XPOST $SAFE_ADDR/postInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+# ?Instance,?Image,?AuthID
+    curl -XPOST $SAFE_ADDR/postInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
 delInstance() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_ADDR/delInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+    curl -XPOST $SAFE_ADDR/delInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
 postVMInstance() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?AuthID,?Cidr,?ImageStoreOwner,?Vpc
-    curl -XPOST $SAFE_ADDR/postVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
+# ?Instance,?Image,?AuthID,?Cidr,?Vpc
+    curl -XPOST $SAFE_ADDR/postVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
 delVMInstance() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_ADDR/delVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\"]}"
+    curl -XPOST $SAFE_ADDR/delVMInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\"]}"
 }
         
 
@@ -97,32 +97,6 @@ delVpcConfig5() {
 }
         
 
-postInstanceAuthID() {
-    local principal=$1
-    shift 1
-# ?Instance,?AuthID
-    curl -XPOST $SAFE_ADDR/postInstanceAuthID -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
-}
-delInstanceAuthID() {
-    local principal=$1
-    shift 1
-    curl -XPOST $SAFE_ADDR/delInstanceAuthID -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
-}
-        
-
-postInstanceAuthKey() {
-    local principal=$1
-    shift 1
-# ?Instance,?AuthID,?AuthKey
-    curl -XPOST $SAFE_ADDR/postInstanceAuthKey -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-delInstanceAuthKey() {
-    local principal=$1
-    shift 1
-    curl -XPOST $SAFE_ADDR/delInstanceAuthKey -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
 postInstanceConfig1() {
     local principal=$1
     shift 1
@@ -185,32 +159,6 @@ delInstanceConfig5() {
     local principal=$1
     shift 1
     curl -XPOST $SAFE_ADDR/delInstanceConfig5 -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\",\"${5}\",\"${6}\",\"${7}\",\"${8}\",\"${9}\",\"${10}\",\"${11}\"]}"
-}
-        
-
-postInstanceCidrConfig() {
-    local principal=$1
-    shift 1
-# ?Instance,?Config,?NetParam
-    curl -XPOST $SAFE_ADDR/postInstanceCidrConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-delInstanceCidrConfig() {
-    local principal=$1
-    shift 1
-    curl -XPOST $SAFE_ADDR/delInstanceCidrConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-postInstanceControl() {
-    local principal=$1
-    shift 1
-# ?Host,?Guest
-    curl -XPOST $SAFE_ADDR/postInstanceControl -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
-}
-delInstanceControl() {
-    local principal=$1
-    shift 1
-    curl -XPOST $SAFE_ADDR/delInstanceControl -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -315,5 +263,53 @@ delParameterizedConnection() {
     local principal=$1
     shift 1
     curl -XPOST $SAFE_ADDR/delParameterizedConnection -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+        
+
+checkContainerIsolation() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkContainerIsolation -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkClusterGuard() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkClusterGuard -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkCodeQuality() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkCodeQuality -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkFetch() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkFetch -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkTrustedCode() {
+    local principal=$1
+    shift 1
+# ?Image, ?Delegator
+    curl -XPOST $SAFE_ADDR/checkTrustedCode -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkTrustedConnections() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkTrustedConnections -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
 }
         

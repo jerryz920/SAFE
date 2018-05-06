@@ -29,44 +29,32 @@ def add_trust_wallet(slang, conf):
     trustSet.add_fact("tapconKernelSource", "\"https://github.com/jerryz920/linux.git#tapcon-v4.4\"")
     trustSet.add_fact("approvedDns", "\"8.8.8.8\"")
     trustSet.add_fact("builderImage", '"' + conf.builder + '"')
+    trustSet.add_fact("builderSource", '\"https://github.com/jerryz920/boot2docker.git#dev\"')
+    trustSet.add_fact("buildsFrom", '"' + conf.builder + '"', '\"https://github.com/jerryz920/boot2docker.git#dev\"') # reproducible build
 
 def add_latte_statements(slang, conf):
 
     # Self is an InstanceID (UUID)
     slang.add_attestation_str("Instance",
-            ["?Instance", "?Image", "?AuthID", "?ImageStoreOwner"],
+            ["?Instance", "?Image"],
             [
-                Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
                 Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")"),
-                Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
-                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
             ], 
-            "link($ImgSet)",
             "link($HostSet)",
-            "link($ControlSet)",
             "runs($Instance, $Image)",
-            "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
             )
 
     slang.add_attestation_str("VMInstance",
-            ["?Instance", "?Image", "?AuthID", "?Cidr", "?ImageStoreOwner", "?Vpc"],
+            ["?Instance", "?Image", "?Vpc"],
             [
-                Expression("?ImgSet", ":=", "label(?ImageStoreOwner, \"control/?Image\")"),
                 #Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
-                Expression("?VpcSet", ":=", "label($IaaS, \"vpc/?Vpc\")"),
-                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+                Expression("?VpcSet", ":=", "label(\"vpc/?Vpc\")"),
             ], 
-            "link($ImgSet)",
             #"link($ControlSet)",
             "link($VpcSet)",
             "root(\"$IaaS\")",
-            "controls($IaaS, $Instance)", # to save a link
             "runs($Instance, $Image)",
-            "allocate($GuestIP, $Cidr)",
-            "bindToId($Instance, $GuestIP, $GuestPorts)",
             "label(\"instance/$Instance\")"
             )
 
@@ -82,27 +70,27 @@ def add_latte_statements(slang, conf):
                 args,
                 [],
                 *facts)
-
-    slang.add_attestation_str("InstanceAuthID",
-            ["?Instance", "?AuthID"],
-            [
-                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
-            ],
-            "bindToId($Instance, $GuestIP, $GuestPorts)",
-            "label(\"instance/$Instance\")"
-            )
-
-    slang.add_attestation_str("InstanceAuthKey",
-            ["?Instance", "?AuthID", "?AuthKey"],
-            [
-                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
-                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
-            ],
-            "bindToId($Instance, $GuestIP, $GuestPorts, $AuthKey)",
-            "label(\"instance/$Instance\")"
-            )
-
+#
+#    slang.add_attestation_str("InstanceAuthID",
+#            ["?Instance", "?AuthID"],
+#            [
+#                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+#                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+#            ],
+#            "bindToId($Instance, $GuestIP, $GuestPorts)",
+#            "label(\"instance/$Instance\")"
+#            )
+#
+#    slang.add_attestation_str("InstanceAuthKey",
+#            ["?Instance", "?AuthID", "?AuthKey"],
+#            [
+#                Expression("?GuestIP", ":=", "ipFromNetworkID(?AuthID)"),
+#                Expression("?GuestPorts", ":=", "portFromNetworkID(?AuthID)")
+#            ],
+#            "bindToId($Instance, $GuestIP, $GuestPorts, $AuthKey)",
+#            "label(\"instance/$Instance\")"
+#            )
+#
     for i in range(1,6):
         args = ["?Instance"]
         facts = []
@@ -115,22 +103,15 @@ def add_latte_statements(slang, conf):
                 args,
                 [],
                 *facts)
-    slang.add_attestation_str("InstanceCidrConfig",
-            ["?Instance", "?Config", "?NetParam"],
-            [
-                Expression("?IP", ":=", "ipFromNetworkID(?NetParam)")
-            ],
-            "config($Instance, $Config, $IP)",
-            "label(\"instance/$Instance\")"
-            )
+#    slang.add_attestation_str("InstanceCidrConfig",
+#            ["?Instance", "?Config", "?NetParam"],
+#            [
+#                Expression("?IP", ":=", "ipFromNetworkID(?NetParam)")
+#            ],
+#            "config($Instance, $Config, $IP)",
+#            "label(\"instance/$Instance\")"
+#            )
 
-    # should always be called by IaaS provider
-    slang.add_attestation_str("InstanceControl",
-            ["?Host", "?Guest"],
-            [ ], 
-            "controls($Host, $Guest)",
-            "label(\"control/$Guest\")"
-            )
 
     # should always be called by the one who asserts the image
     slang.add_attestation_str("LinkImageOwner",
@@ -166,28 +147,30 @@ def add_latte_statements(slang, conf):
     slang.add_attestation_str("Cluster",
             ["?Cluster", "?OwnerGuard", "?JoinerGuard"],
             [
-                Expression("?MasterSet", ":=", "label(?MasterID, \"instance/?Self\")")
+                Expression("?MasterSet", ":=", "label($BearerRef, \"instance/$Self\")")
             ],
-            "link($MasterSet)",
-            "cluster($Cluster)",
+            "link($MasterSet)", # hostset: this is different from below label!
+            "cluster($Cluster, $Self)",
             "ownerGuard($OwnerGuard)",
             "joinerGuard($JoinerGuard)",
-            "label(\"cluster/$Self\")"
+            "label(\"instance/$Self\")" #self claims
             )
 
     slang.add_attestation_str("Membership",
             ["?Cluster", "?WorkerID"],
             [],
             "member($Cluster, $WorkerID)",
-            "label(\"cluster/$Self\")"
+            "label(\"instance/$Self\")" # self claim
             )
 
     slang.add_attestation_str("AckMembership",
             ["?Cluster", "?MasterID"],
             [
-                Expression("?MasterSet", ":=", "label(?MasterID, \"cluster/?MasterID\")")
+                Expression("?MasterSet", ":=", "label(?MasterID, \"instance/?MasterID\")"),
+                Expression("?SelfSet", ":=", "label($BearerRef, \"instance/$Self\")")
             ],
-            "link($MasterSet)",
+            "link($MasterSet)", # link to master's self claim set
+            "link($SelfSet)",
             "join($Cluster, $MasterID)",
             "label(\"instance/$Self\")", # spoken for itself
             )
@@ -214,10 +197,10 @@ def add_latte_lib(slang, conf):
     librarySet = slang.add_ruleset("libraryRules")
 
     # controls
-    librarySet.add_rule_str(
-            "controls(Host, Guest)",
-            "IaaS : controls(Host, Guest)",
-            "trustedCloudProvider(IaaS)")
+    #librarySet.add_rule_str(
+    #        "controls(Host, Guest)",
+    #        "IaaS : controls(Host, Guest)",
+    #        "trustedCloudProvider(IaaS)")
 
     #librarySet.add_rule_str(
     #        "contains(HostAddr, GuestAddr)",
@@ -233,14 +216,12 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "hasConfig(Instance, ConfName, ConfValue)",
             "H: config(Instance, ConfName, ConfValue)",
-            "controls(H, Guest)",
             "attester(H)")
 
     # launches
     librarySet.add_rule_str(
             "launches(Instance, Image)",
             "H: runs(Instance, Image)",
-            "controls(H, Instance)",
             "attester(H)")
 
     librarySet.add_rule_str(
@@ -255,10 +236,16 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "builder(Instance)",
             "checkProperty(Instance, $PropertyBuilder, 1)")
+
     librarySet.add_rule_str(
             "builder(Instance)",
             "launches(Instance, Image)",
             "builderImage(Image)")
+    librarySet.add_rule_str(
+            "builder(Instance)",
+            "launches(Instance, Image)",
+            "buildsFrom(Image, Source)",
+            "builderSource(Source)")
 
     librarySet.add_rule_str(
             "buildsFrom(Image, Source)",
@@ -399,12 +386,12 @@ def load_guard_file(slang, fname):
                     "label(\"%s\")" % rulesetName))
                 exprs.append(Expression("?TrustWallet", ":=", 
                     "label(\"%s\")" % TrustWallet))
-                exprs.append(Expression("?LibrarySet", ":=", 
+                exprs.append(Expression("?LibraryRules", ":=", 
                     "label(\"%s\")" % LatteLibrary))
                 links = g.get("links", [])
                 links.append("$HelperRuleSet")
                 links.append("$TrustWallet")
-                links.append("$LibrarySet")
+                links.append("$LibraryRules")
                 queries = [fact_from_str(s, Fact) for s in g.get("queries", [])]
                 slang.add_guard(Guard(name, g["args"], exprs, links, *queries))
     except Exception as e: 

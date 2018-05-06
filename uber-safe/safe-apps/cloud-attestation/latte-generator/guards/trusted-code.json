@@ -34,12 +34,12 @@
     ]
   ],
 
-  "comment-guards": "These are guard interfaces",
+  "comment-guards": "Implements an indirect image checker to accept indirect instance endorsements",
   "guards": {
     "TrustedCode": {
-      "args": ["?Image"],
+      "args": ["?Image, ?Delegator"],
       "exprs": [
-	["?ImageSet", ":=", "label(\"endorsements/?Image\")"]
+	["?ImageSet", ":=", "label(?Delegator, \"control/?Image\")"]
       ],
       "links": [
 	"$ImageSet"
