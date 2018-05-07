@@ -13,7 +13,7 @@ riak start
 riak ping
 # Initialize Riak with a SAFE bucket
 if [[ x"$MASTER" != x ]]; then
-  riak-admin cluster join riak-inner@$MASTER
+  riak-admin cluster join riak-master@$MASTER
 else
   riak-admin bucket-type create safesets '{"props":{"n_val":3, "w":1, "r":1, "pw":0, "pr":0}}'
   riak-admin bucket-type activate safesets
