@@ -1,7 +1,7 @@
 
 source env.sh
 # on first node
-for n in $NODES; do
+for n in $WORKER; do
   ssh -tt $n '
   sudo apt-get remove -y docker docker-engine docker.io
   sudo apt-get install -y \

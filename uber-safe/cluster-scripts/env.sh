@@ -1,4 +1,4 @@
 
 export MASTER="controller"
-export WORKER="network compute1"
+export WORKER="compute1 compute2 compute3 compute4"
 export NODES="$MASTER $WORKERS"
