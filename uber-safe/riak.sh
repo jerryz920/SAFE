@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-USE_VOLUME=1
+USE_VOLUME=0
 
 if [ $USE_VOLUME -eq 1 ]; then
   VOL_NAME=data
@@ -32,7 +32,8 @@ case $1 in
     if [ $USE_VOLUME -eq 1 ]; then
       docker volume rm -f $VOL_NAME
     else
-      rm -rf $VOL_NAME/riak/*
+      echo "removing $VOL_NAME"
+      rm -rf $VOL_NAME/*
       mkdir -p $VOL_NAME/ring
     fi
     ;;
@@ -43,7 +44,8 @@ case $1 in
       docker volume rm -f $VOL_NAME
       docker volume create $VOL_NAME
     else
-      rm -rf $VOL_NAME/riak/*
+      echo "removing $VOL_NAME"
+      rm -rf $VOL_NAME/*
       mkdir -p $VOL_NAME/ring
     fi
     echo "starting riak"
