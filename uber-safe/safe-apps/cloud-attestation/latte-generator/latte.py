@@ -15,6 +15,7 @@ def add_envs(slang, conf):
     slang.add_env("PropertyAttester", "\"attester\"")
     slang.add_env("PropertyNossh", "\"nossh\"")
     slang.add_env("PropertyDns", "\"dns\"")
+    slang.add_env("PropertyVpcId", "\"vpcid\"")
     slang.add_env("PropertyPackage", "\"package\"")
     slang.add_env("PropertyPackageVersion", "\"packageVersion\"")
     slang.add_env("PropertyPackageSource", "\"packageSource\"")
@@ -59,6 +60,7 @@ def add_latte_statements(slang, conf):
             "link($VpcSet)",
             "link($HubSet)",
             "root(\"$IaaS\")",
+            "config($Instance,$PropertyVpcId, $Vpc)",
             "runs($Instance, $Image)",
             "label(\"instance/$Instance\")"
             )

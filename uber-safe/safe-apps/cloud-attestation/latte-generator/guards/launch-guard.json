@@ -11,7 +11,7 @@
     [
       "checkVMClusterLaunchGuard(Instance)",
       "H: config(Instance, \"vpcid\", ClusterID)",
-      "H: config(Instance, \"launchGuard\", GuardText)",
+      "H: config(ClusterID, \"launchGuard\", GuardText)",
       "trustedCloudProvider(H)",
       "expectedLaunchGuard(GuardText)"
     ]
@@ -29,7 +29,7 @@
 	"$HostSet"
       ],
       "queries": [
-	"checkVMClusterLaunchGuard($Image)"
+	"checkVMClusterLaunchGuard($Instance)"
       ]
     }
   }

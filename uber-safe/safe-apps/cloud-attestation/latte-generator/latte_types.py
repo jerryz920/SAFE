@@ -104,7 +104,7 @@ class Env(object):
         self.value = value
         if self.value.startswith("@"):
             with open(self.value[1:], "r") as f:
-                self.value = f.read()
+                self.value = f.read().strip()
                 self.value = self.value.replace('\\', '\\\\')
                 self.value = self.value.replace('"', '\\"')
                 self.value = self.value.replace('\'', '\\\'')

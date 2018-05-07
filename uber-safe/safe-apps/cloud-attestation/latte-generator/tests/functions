@@ -350,43 +350,11 @@ checkFetch() {
 }
         
 
-checkAttester() {
-    local principal=$1
-    shift 1
-# ?Instance
-    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
-}
-        
-
 checkConfig() {
     local principal=$1
     shift 1
 # ?Instance,?Name,?Value
     curl -XPOST $SAFE_ADDR/checkConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-checkProperty() {
-    local principal=$1
-    shift 1
-# ?Instance,?Name,?Value
-    curl -XPOST $SAFE_ADDR/checkProperty -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-checkBuildsFrom() {
-    local principal=$1
-    shift 1
-# ?Instance,?Image,?Value
-    curl -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-checkLaunches() {
-    local principal=$1
-    shift 1
-# ?Instance,?Image
-    curl -XPOST $SAFE_ADDR/checkLaunches -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
 }
         
 
@@ -398,11 +366,43 @@ checkBuilder() {
 }
         
 
+checkAttester() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkLaunches() {
+    local principal=$1
+    shift 1
+# ?Instance,?Image
+    curl -XPOST $SAFE_ADDR/checkLaunches -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
+}
+        
+
+checkBuildsFrom() {
+    local principal=$1
+    shift 1
+# ?Instance,?Image,?Value
+    curl -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+        
+
 checkEndorse() {
     local principal=$1
     shift 1
 # ?Instance,?Image,?Name,?Value
     curl -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+}
+        
+
+checkProperty() {
+    local principal=$1
+    shift 1
+# ?Instance,?Name,?Value
+    curl -XPOST $SAFE_ADDR/checkProperty -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
 }
         
 
