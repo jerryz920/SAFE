@@ -25,6 +25,7 @@
 	"packageVersion($TapConSource, \"syslog\", \"3.9.1\")",
 	"packageVersion($TapConSource, \"dhcpcd\", \"7.0.1\")",
 	"packageVersion($TapConSource, \"libc\", \"2.6.0\")",
-	"parameterizedConnection($TapConSource, \"docker\", \"imageRepo\")"
+	"parameterizedConnection($TapConSource, \"docker\", \"imageRepo\")",
+        "endorse($TapConSource, \"attester\", 1)"
   ]
 }

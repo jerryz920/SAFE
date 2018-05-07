@@ -12,16 +12,27 @@
   ],
   "rules": [
     [
-      "containerIsolated(Instance)",
-      [
+      "kernelBuildConfig(Image, Name, Value)",
+      "buildsFrom(Image, Source)",
+      "kernelBuildConfig(Source, Name, Value)"
+    ],
+    [
+      "unsatisfiedConfig(Instance, Conf, Value)",
 	"containerSpec(Name, Value)",
 	"hasConfig(Instance, Name, RealValue)",
 	"Value \\== RealValue"
-      ],
+    ],
+    [
+      "containerIsolated(Instance)",
+      "H:config(Instance, \"pidns\", \"default\")",
+      "H:config(Instance, \"netns\", \"default\")",
+      "H:config(Instance, \"mountns\", \"default\")",
+      "H:config(Instance, \"utsns\", \"default\")",
+      "H:config(Instance, \"ipcns\", \"default\")",
+      "H:config(Instance, \"apparmor-profile\", \"default\")",
+      "H:config(Instance, \"privileged\", \"false\")",
       "\\+ (hasConfig(Instance, \"mount\", Path))",
-      "I: controls(H, Instance)",
       "attester(H)",
-      "trustedCloudProvider(I)",
       "launches(H, TapconImage)",
       "kernelBuildConfig(TapconImage, \"apparmor\", 1)",
       "kernelBuildConfig(TapconImage, \"selinux\", 1)",

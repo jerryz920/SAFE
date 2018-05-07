@@ -29,11 +29,20 @@ if __name__ == "__main__":
     conf = parse_option()
     slang = Slang()
     latte.add_envs(slang, conf)
-    latte.add_trust_wallet(slang, conf)
+    wallet = latte.add_trust_wallet(slang, conf)
     latte.add_latte_statements(slang, conf)
     latte.add_latte_lib(slang, conf)
-    latte.load_endorsements(slang, conf)
+    labels_to_link = latte.load_endorsements(slang, conf)
+
+    i = 0
+    for link in labels_to_link:
+        name = "Auxlabel%d" % i 
+        wallet.add_expr("?%s" % name, ":=", "label(\"%s\")" % link)
+        wallet.add_fact("link", "$%s" % name)
+        i += 1
+
     latte.load_guards(slang, conf)
+
 
     sys.stdout.write(slang.generate())
 

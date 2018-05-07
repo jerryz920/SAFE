@@ -3,7 +3,7 @@
 script=`readlink -f $0`
 workdir=`dirname $script`
 RIAK_IP=riak
-guard="0x123456"
+guard="image-builder"
 
 
 cd $workdir/safe-apps/cloud-attestation/latte-generator

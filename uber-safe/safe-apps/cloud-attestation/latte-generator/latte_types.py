@@ -194,7 +194,7 @@ class Ruleset(object):
         self.facts.extend(map(lambda s: fact_from_str(s), facts))
 
     def add_expr(self, left, op, right):
-        self.facts.append(Expression(left, op, right))
+        self.exprs.append(Expression(left, op, right))
 
     def add_rule(self, head, facts):
         self.rules.append(Rule(head, facts))

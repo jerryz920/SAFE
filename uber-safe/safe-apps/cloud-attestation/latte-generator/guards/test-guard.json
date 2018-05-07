@@ -30,6 +30,104 @@
       "queries": [
 	"fetch($Instance)"
       ]
+    },
+    "Attester": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"attester($Instance)"
+      ]
+    },
+    "Builder": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"builder($Instance)"
+      ]
+    },
+    "Endorse": {
+      "args": ["?Instance", "?Image", "?Name", "?Value"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"endorse($Image, $Name, $Value)"
+      ]
+    },
+    "Launches": {
+      "args": ["?Instance", "?Image"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"launches($Instance, $Image)"
+      ]
+    },
+    "Config": {
+      "args": ["?Instance", "?Name", "?Value"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"hasConfig($Instance, $Name, $Value)"
+      ]
+    },
+    "Property": {
+      "args": ["?Instance", "?Name", "?Value"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"checkProperty($Instance, $Name, $Value)"
+      ]
+    },
+    "BuildsFrom": {
+      "args": ["?Instance", "?Image", "?Value"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"buildsFrom($Image, $Value)"
+      ]
     }
   }
 }

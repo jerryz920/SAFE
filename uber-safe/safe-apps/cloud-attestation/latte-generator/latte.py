@@ -31,28 +31,33 @@ def add_trust_wallet(slang, conf):
     trustSet.add_fact("builderImage", '"' + conf.builder + '"')
     trustSet.add_fact("builderSource", '\"https://github.com/jerryz920/boot2docker.git#dev\"')
     trustSet.add_fact("buildsFrom", '"' + conf.builder + '"', '\"https://github.com/jerryz920/boot2docker.git#dev\"') # reproducible build
+    return trustSet
 
 def add_latte_statements(slang, conf):
 
     # Self is an InstanceID (UUID)
     slang.add_attestation_str("Instance",
-            ["?Instance", "?Image"],
+            ["?Instance", "?Image", "?TrustHub"],
             [
                 Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")"),
+                Expression("?HubSet", ":=", "label(?TrustHub, \"trusthub\")"),
             ], 
             "link($HostSet)",
+            "link($HubSet)",
             "runs($Instance, $Image)",
             "label(\"instance/$Instance\")"
             )
 
     slang.add_attestation_str("VMInstance",
-            ["?Instance", "?Image", "?Vpc"],
+            ["?Instance", "?Image", "?Vpc", "?TrustHub"],
             [
                 #Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("?VpcSet", ":=", "label(\"vpc/?Vpc\")"),
+                Expression("?HubSet", ":=", "label(?TrustHub, \"trusthub\")"),
             ], 
             #"link($ControlSet)",
             "link($VpcSet)",
+            "link($HubSet)",
             "root(\"$IaaS\")",
             "runs($Instance, $Image)",
             "label(\"instance/$Instance\")"
@@ -114,18 +119,27 @@ def add_latte_statements(slang, conf):
 
 
     # should always be called by the one who asserts the image
-    slang.add_attestation_str("LinkImageOwner",
-            ["?Creator", "?Image"],
+    slang.add_attestation_str("EndorsementLink",
+            ["?Endorser", "?Target"],
             [
-                Expression("?ImageSet", ":=", "label(?Creator, \"endorsements/?Image\")")
+                Expression("?TargetSet", ":=", "label(?Endorser, \"endorsements/?Target\")")
             ],
-            "link($ImageSet)",
-            "label(\"control/$Image\")"
+            "link($TargetSet)",
+            "label(\"trusthub\")"
             )
 
     slang.add_attestation_str("Endorsement",
             ["?Target", "?Prop", "?Value"],
             [],
+            "endorse($Target, $Prop, $Value)",
+            "label(\"endorsements/$Target\")"
+            )
+    slang.add_attestation_str("InstanceEndorsement",
+            ["?Target", "?Prop", "?Value"],
+            [
+                Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")")
+            ],
+            "link($HostSet)",
             "endorse($Target, $Prop, $Value)",
             "label(\"endorsements/$Target\")"
             )
@@ -137,9 +151,28 @@ def add_latte_statements(slang, conf):
             "label(\"endorsements/$Target\")"
             )
 
+    slang.add_attestation_str("InstanceConditionalEndorsement",
+            ["?Target", "?Key", "?Expected", "?Prop", "?Value"],
+            [
+                Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")")
+            ],
+            "link($HostSet)",
+            "endorseIfEqual($Target, $Key, $Expected, $Prop, $Value)",
+            "label(\"endorsements/$Target\")"
+            )
+
     slang.add_attestation_str("ParameterizedEndorsement",
             ["?Target", "?Prop", "?ConfName"],
             [ ],
+            "parameterizedEndorse($Target, $Prop, $ConfName)",
+            "label(\"endorsements/$Target\")"
+            )
+    slang.add_attestation_str("InstanceParameterizedEndorsement",
+            ["?Target", "?Prop", "?ConfName"],
+            [
+                Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")")
+            ],
+            "link($HostSet)",
             "parameterizedEndorse($Target, $Prop, $ConfName)",
             "label(\"endorsements/$Target\")"
             )
@@ -192,6 +225,19 @@ def add_latte_statements(slang, conf):
 
         defpost lazyDeleteInstance(?Instance) :- [lazyDtorInstanceSet(?Instance)].
     ''')
+
+    # trust hub link differs from ImageOwnerLink in that it posts to a general
+    # set owned by the trusthub. It may introduce heavy dependencies, but we might
+    # be able to invent some link reduction techniques to load needed content on
+    # demand.
+    slang.add_attestation_str("TrustHubLink",
+            ["?OtherHub"],
+            [
+                Expression("?HubSet", ":=", "label(?OtherHub, \"trusthub\")")
+            ],
+            "link($HubSet)",
+            "label(\"trusthub\")"
+        )
 
 def add_latte_lib(slang, conf):
     librarySet = slang.add_ruleset("libraryRules")
@@ -278,9 +324,8 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
-            "endorse(Image, Property, Value)",
-            "B: endorse(Image, $PropertySource, Source)",
-            "builder(B)")
+            "buildsFrom(Image, Source)",
+            "endorse(Source, Property, Value)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
@@ -291,10 +336,9 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
+            "buildsFrom(Image, Source)",
             "parameterizedEndorse(Source, Property, ConfName)",
-            "B: endorse(Image, $PropertySource, Source)"
-            "hasConfig(Instance, ConfName, Value)",
-            "builder(B)")
+            "hasConfig(Instance, ConfName, Value)")
 
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
@@ -306,11 +350,10 @@ def add_latte_lib(slang, conf):
     librarySet.add_rule_str(
             "checkProperty(Instance, Property, Value)",
             "launches(Instance, Image)",
+            "buildsFrom(Image, Source)",
             "endorseIfEqual(Source, Key, Expected, Property, Value)",
-            "B : endorse(Image, $PropertySource, Source)"
             "hasConfig(Instance, Key, Real)",
-            "Real = Expected",
-            "builder(B)")
+            "Real = Expected")
 
     librarySet.add_rule_str(
             "sourceCheck(Instance, Package, Source)",
@@ -356,22 +399,27 @@ def add_latte_lib(slang, conf):
             "buildsFrom(Image, Source)",
             "parameterizedConnection(Source, Package, ConfKey)",
             "hasConfig(Instance, ConfKey, Ep)")
+    return librarySet
 
 def load_endorsement_file(slang, fname):
 
     try:
         with open(fname, "r") as f:
             v = json.load(f)
+            label = "endorsements/%s" % v["label"]
             slang.add_endorsement(Endorsement(v["name"], 
-                "endorsements/%s" % v["label"], v["speaker"],
+                label, v["speaker"],
                 v.get("attestations", []), v.get("rules", []), v.get("envs", {})))
+            return label
     except Exception as e: 
         sys.stderr.write("Json parse exception in loading endorsements %s, %s\n" % (fname, e))
         raise
 
 def load_endorsements(slang, conf):
+    labels_to_link = []
     for efile in conf.endorsements:
-        load_endorsement_file(slang, efile)
+        labels_to_link.append(load_endorsement_file(slang, efile))
+    return labels_to_link
 
 def load_guard_file(slang, fname):
     try:
