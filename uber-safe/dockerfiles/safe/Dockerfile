@@ -20,6 +20,7 @@ RUN cd ~/ && tar -zxvf sbt-${SBT_VERSION}.tgz
 # Download and SAFE
 COPY prevent-cache /tmp/
 RUN cd ~/ && git clone -b latte https://github.com/jerryz920/SAFE.git
+RUN cd ~/SAFE/uber-safe && PATH=$PATH:$HOME/sbt/bin bash build.sh
 
 ENTRYPOINT ["/bin/bash", "/root/start.sh"]
 #ENTRYPOINT ["/bin/sh", "-c"]
