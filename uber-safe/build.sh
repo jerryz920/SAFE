@@ -14,7 +14,7 @@ sed -i "/.*url = \"http/ s:.*:    url = \"http\://${RIAK_IP}\:8098/types/safeset
 sbt "project safe-server" "run -f $workdir/safe-apps/cloud-attestation/latte-generator/latte.slang  -r safeService  -kd   src/main/resources/multi-principal-keys/" &
 
 #different is we kill the command after 150second
-sleep 150
+sleep 250
 kill %1
 echo "after build!"
 
