@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SAFE_ADDR=http://localhost:19851
+SAFE_ADDR=http://compute4:19851
 IAAS=152.3.145.38:444
 IaaS=152.3.145.38:444
 
