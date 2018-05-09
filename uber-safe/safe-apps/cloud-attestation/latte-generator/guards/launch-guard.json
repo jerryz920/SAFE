@@ -22,7 +22,7 @@
       "args": ["?Instance"],
       "exprs": [
 	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
-	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
       ],
       "links": [
 	"$InstanceSet",

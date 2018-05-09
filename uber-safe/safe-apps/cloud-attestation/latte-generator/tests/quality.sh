@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SAFE_ADDR=http://compute4:19851
+SAFE_ADDR=http://localhost:19851
 IAAS=152.3.145.38:444
 IaaS=152.3.145.38:444
 
@@ -9,24 +9,29 @@ source ./manual-functions
 
 
 # configs
-N=100
+N=50
 L=3
 BUILDER="128.105.104.122:1-65535"
 
 # endorse the source from "simulated instance" to simplify the test
 postVMInstance $IAAS "vm-builder" "image-builder" "128.105.104.122:1-65535" "192.168.1.0/24" "vpc-builder" "noauth:vm"
+postVMInstance $IAAS "vm-scanner" "image-scanner" "128.105.104.123:1-65535" "192.168.2.0/24" "vpc-scanner" "noauth:docker"
 #postLinkImageOwner $IaaS "$BUILDER" "image-vm"
 #postEndorsement "$BUILDER" "image-vm" "source" "https://github.com/jerryz920/boot2docker"
 #postEndorsement "$BUILDER" "image-ctn" "source" "https://github.com/apache/spark"
 #postEndorsement "$BUILDER" "image-spark" "source" "https://github.com/intel/hibench"
 
 postEndorsementLink "noauth:vm" "vm-builder" "image-vm"
-postEndorsementLink "noauth:vm" "vm-builder" "image-vm"
 postEndorsementLink "noauth:docker" "vm-builder" "image-ctn"
-postEndorsementLink "noauth:spark" "noauth:analytic" "image-spark"
+postEndorsementLink "noauth:docker" "vm-scanner" "image-ctn"
 postEndorsement "vm-builder" "image-vm" "source" "https://github.com/jerryz920/boot2docker.git#dev"
-postEndorsement "vm-builder" "image-ctn" "source" "https://github.com/apache/spark.git#dev"
-postEndorsement "noauth:analytic" "image-spark" "source" "https://github.com/intel/hibench.git#dev"
+postEndorsement "vm-builder" "image-ctn" "source" "https://github.com/docker/ubuntu.git#xenial"
+postEndorsement "vm-builder" "image-scanner" "source" "https://github.com/arminc/clair-scanner.git#master"
+
+for n in `cat cve.out`; do
+  m=`bash -c "echo $n"`
+  postEndorsement "vm-scanner" "image-cnt" "cve" $m
+done
 
 create() {
   for n in `seq 1 $N`; do
@@ -40,34 +45,15 @@ create() {
     for m in `seq 1 50`; do
       postInstance "192.168.0.$n:1-65535" "vm$n-ctn$m" "image-ctn" "192.168.$n.$m:1-65535" "noauth:docker"
       postInstanceConfig5 "192.168.0.$n:1-65535" "vm$n-ctn$m" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
-      #    postInstanceControl $IAAS "vm$n" "vm$n-ctn$m"
-      if [ $L -le 2 ]; then
-	continue;
-      fi
-      for l in `seq 1 4`; do
-	port1="3${l}000"
-	port2="3${l}999"
-	postInstance "192.168.$n.$m:1-65535" "vm$n-ctn$m-spark$l" "image-spark" "192.168.$n.$m:$port1-$port2"  "noauth:spark"
-	postInstanceConfig5 "192.168.$n.$m:1-65535" "vm$n-ctn$m-spark$l" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
-	#      postInstanceControl $IAAS "vm$n-ctn$m" "vm$n-spark$l"
-      done
     done
   done
 }
 
 time create
 
-#checkFetch haha vm1-ctn1-spark1
-#checkAttester $IaaS $IaaS
-#checkBuilder $IaaS vm-builder
-checkLaunches anyone vm1 image-vm 
-checkBuildsFrom anyone vm1 image-vm "https://github.com/jerryz920/boot2docker.git#dev"
-#checkEndorse anyone vm1 image-vm attester 1
-checkEndorse anyone vm1 "https://github.com/jerryz920/boot2docker.git#dev" attester 1
-checkAttester anyone vm1
-checkAttester anyone vm1-ctn1
-#checkAttester $IaaS vm1-ctn1
-#
+checkCodeQuality "noauth:codeworker" 192.168.1.2:3000
+
+
 
 
 

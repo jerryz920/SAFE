@@ -185,9 +185,7 @@ def add_latte_statements(slang, conf):
                 Expression("?MasterSet", ":=", "label($BearerRef, \"instance/$Self\")")
             ],
             "link($MasterSet)", # hostset: this is different from below label!
-            "cluster($Cluster, $Self)",
-            "ownerGuard($OwnerGuard)",
-            "joinerGuard($JoinerGuard)",
+            "cluster($Cluster, $OwnerGuard, $JoinerGuard)",
             "label(\"instance/$Self\")" #self claims
             )
 

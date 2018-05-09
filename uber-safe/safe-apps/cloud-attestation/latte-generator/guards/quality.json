@@ -1,39 +1,33 @@
 {
   "name": "CodeQuality",
   "envs": {
-    "SyslogVersion": "\"3.9.1\"",
-    "DhcpVersion": "\"7.0.1\"",
-    "LinuxVersion": "\"4.4.39\"",
-    "ScannerSource": "\"https://github.com/swamp/swamp#master\""
+    "ScannerSource": "\"https://github.com/arminc/clair-scanner.git#master\""
   },
   "comment-trustwallet": "it defines additional trusts besides those from endorsers",
   "trustWallet": [
-    "requiredVersion(\"syslog\", $SyslogVersion)",
-    "requiredVersion(\"dhcp\", $DhcpVersion)",
-    "requiredVersion(\"linux\", $LinuxVersion)",
+    "fatalCVE(\"cve-2017-8834\")",
+    "fatalCVE(\"cve-2017-7691\")",
+    "fatalCVE(\"cve-2017-7960\")",
     "scannerSource($ScannerSource)"
   ],
   "rules": [
     [
-      "serviceVersionSatisfied(Instance)",
-      "\\+(invalidService(Instance, Package))",
-      "\\+(unscannedService(Instance, Package))"
+      "checkVulnerability(Instance)",
+      "\\+(vulnerable(Instance))"
     ],
     [
-      "invalidService(Instance, Package)",
-      "requiredVersion(Package, ExpectedVersion)",
-      "versionCheck(Instance, Package, RealVersion)",
-      "ExpectedVersion \\== RealVersion"
+      "vulnerable(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "Scanner: endorse(Source, \"cve\", Cve)",
+      "fatalCVE(Cve)",
+      "clairScanner(Scanner)"
     ],
     [
-      "unscannedService(Instance, Package)",
-      "sourceCheck(Instance, Package, PSource)",
-      [
-	"H: endorse(PSource, \"scan-passed:token\", 1)",
-	"launches(H, Image)",
-	"buildsFrom(Image, SSource)",
-	"scannerSource(SSource)"
-      ]
+      "clairScanner(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "scannerSource(Source)"
     ]
   ],
 
@@ -43,14 +37,14 @@
       "args": ["?Instance"],
       "exprs": [
 	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
-	["?HostSet", ":=", "label(?InstanceSet, \"instance/?Instance\")"]
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
       ],
       "links": [
 	"$InstanceSet",
 	"$HostSet"
       ],
       "queries": [
-	"serviceVersionSatisfied($Image)"
+	"checkVulnerability($Instance)"
       ]
     }
   }

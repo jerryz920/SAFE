@@ -1,0 +1,52 @@
+{
+  "name": "Membership",
+  "envs": {
+    "MasterSource": "\"https://github.com/apache/spark.git#dev\"",
+    "WorkerSource": "\"https://github.com/apache/spark.git#dev\"",
+    "OwnerGuard": "@ownerguard.slang",
+    "JoinerGuard": "@joinerguard.slang"
+  },
+  "trustWallet": [
+    "trustedMasterSource($MasterSource)",
+    "trustedWorkerSource($WorkerSource)",
+    "trustedOwnerGuard($OwnerGuard)",
+    "trustedJoinerGuard($JoinerGuard)"
+  ],
+  "rules": [
+    [
+      "trustedCluster(Instance)",
+      "launches(Instance, ImageW)",
+      "buildsFrom(ImageW, SourceW)",
+      "trustedWorkerSource(SourceW)",
+      "Instance: join(ClusterID, Master)",
+      "Master: member(ClusterID, Instance)",
+      "masterRunsSource(Master)"
+    ],
+    [
+      "masterRunsSource(Master)",
+      "Master: cluster(ClusterID, GuardO, GuardJ)",
+      "trustedOwnerGuard(GuardO)",
+      "trustedJoinerGuard(GuardJ)",
+      "launches(Master, Image)",
+      "buildsFrom(Image, Source)",
+      "trustedMasterSource(Source)"
+    ]
+  ],
+
+  "guards": {
+    "TrustedCluster": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"trustedCluster($Instance)"
+      ]
+    }
+  }
+}

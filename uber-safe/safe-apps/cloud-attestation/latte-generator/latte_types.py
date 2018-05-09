@@ -72,12 +72,12 @@ post%(name)s() {
     local principal=$1
     shift 1
 # %(formalargs)s
-    curl -XPOST $SAFE_ADDR/post%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s]}"
+    curl -XPOST $SAFE_ADDR/post%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\":\\"${AUTH:-1}\\"}"
 }
 del%(name)s() {
     local principal=$1
     shift 1
-    curl -XPOST $SAFE_ADDR/del%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s]}"
+    curl -XPOST $SAFE_ADDR/del%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\": \\"${AUTH:-1}\\"}"
 }
         ''' % formats
 

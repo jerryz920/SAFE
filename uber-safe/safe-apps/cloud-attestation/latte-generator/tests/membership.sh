@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SAFE_ADDR=http://compute4:19851
+SAFE_ADDR=http://localhost:19851
 IAAS=152.3.145.38:444
 IaaS=152.3.145.38:444
 
@@ -9,7 +9,7 @@ source ./manual-functions
 
 
 # configs
-N=100
+N=10
 L=3
 BUILDER="128.105.104.122:1-65535"
 
@@ -37,7 +37,7 @@ create() {
     if [ $L -le 1 ]; then
       continue;
     fi
-    for m in `seq 1 50`; do
+    for m in `seq 1 10`; do
       postInstance "192.168.0.$n:1-65535" "vm$n-ctn$m" "image-ctn" "192.168.$n.$m:1-65535" "noauth:docker"
       postInstanceConfig5 "192.168.0.$n:1-65535" "vm$n-ctn$m" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
       #    postInstanceControl $IAAS "vm$n" "vm$n-ctn$m"
@@ -55,17 +55,34 @@ create() {
   done
 }
 
-time create
+#time create
+
+
+#export AUTH=1
+postCluster vm1-ctn1 "spark" "ownerguardtext" "joinguardtext"
+for n in `seq 2 8`; do
+  for m in `seq 2 8`; do
+    export AUTH=1
+    postMembership vm1-ctn1 "spark" vm$n-ctn$m
+    export AUTH=$n
+    postAckMembership vm$n-ctn$m "spark" vm1-ctn1
+  done
+done
+#
+checkTrustedCluster "noauth:alice" vm2-ctn5
+checkTrustedCluster "noauth:bob" vm3-ctn4
+
+
 
 #checkFetch haha vm1-ctn1-spark1
 #checkAttester $IaaS $IaaS
 #checkBuilder $IaaS vm-builder
-checkLaunches anyone vm1 image-vm 
-checkBuildsFrom anyone vm1 image-vm "https://github.com/jerryz920/boot2docker.git#dev"
+#checkLaunches anyone vm1 image-vm 
+#checkBuildsFrom anyone vm1 image-vm "https://github.com/jerryz920/boot2docker.git#dev"
 #checkEndorse anyone vm1 image-vm attester 1
-checkEndorse anyone vm1 "https://github.com/jerryz920/boot2docker.git#dev" attester 1
-checkAttester anyone vm1
-checkAttester anyone vm1-ctn1
+#checkEndorse anyone vm1 "https://github.com/jerryz920/boot2docker.git#dev" attester 1
+#jcheckAttester anyone vm1
+#checkAttester anyone vm1-ctn1
 #checkAttester $IaaS vm1-ctn1
 #
 
@@ -92,7 +109,7 @@ remove() {
 	    lazyDeleteInstance "192.168.$n.$m:1-65535" "vm$n-ctn$m-spark$l" 
 	    #delInstanceConfig5 "192.168.$n.$m:1-65535" "vm$n-ctn$m-spark$l" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
 	    #delInstance "192.168.$n.$m:1-65535" "vm$n-ctn$m-spark$l" "image-spark" "192.168.$n.$m:32000-65535" 
-	  echo -n
+	    echo -n
 	  done
 	  lazyDeleteInstance "vm$n" "vm$n-ctn$m" 
 	  #delInstanceConfig5 "192.168.0.$n:1-65535" "vm$n-ctn$m" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4" "c5" "v5"
@@ -106,5 +123,3 @@ remove() {
     #delInstanceConfig4 $IaaS "vm$n" "c1" "v1" "c2" "v2" "c3" "v3" "c4" "v4"
   done
 }
-
-#time remove #>/dev/null 2>&1
