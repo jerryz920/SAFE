@@ -2,32 +2,32 @@
   "name": "TrustedConnection",
   "envs": {
     "OpenDns": "\"8.8.8.8\"",
-    "RepoAddr": "\"192.168.1.2\"",
-    "InnerNetwork": "\"192.168.0.0/24\""
+    "RepoAddr": "ipv4\"10.0.0.2\"",
+    "InnerNetwork": "ipv4\"192.168.0.0/24\""
   },
   "trustWallet": [
       "approvedDns($OpenDns)",
-      "approvedEndpoint(\"docker\", $RepoAddr)",
-      "approvedNetwork(\"docker\", $InnerNetwork)"
+      "approvedNetwork(\"docker\", ipv4\"192.168.0.0/24\")",
+      "approvedNetwork(\"docker\", ipv4\"10.0.0.2\")"
   ],
   "rules": [
     [
       "approveConnections(Instance)",
       "launches(Instance, Image)",
-      "endorse(Instance, $PropertyDns, Dns)",
+      "endorse(Source, $PropertyDns, Dns)",
+      "buildsFrom(Image, Source)",
       "approvedDns(Dns)",
-      "\\+(invalidConnection(Instance, Service, Url))"
+      "\\+(invalidConnection(Instance))"
     ],
     [
-      "invalidConnection(Instance, Service, Url)",
+      "invalidConnection(Instance)",
       "connection(Instance, Service, Url)",
-      [
-	"approveNetwork(Service, ApprovedNetwork)",
-	"Url <: ApprovedNetwork"
-      ],
-      [
-	"approveEndpoint(Service, Url)"
-      ]
+      "\\+allowConnect(Service, Url)"
+    ],
+    [
+      "allowConnect(Service, Url)",
+      "approvedNetwork(Service, ApprovedNetwork)",
+      "Url <:ApprovedNetwork"
     ]
   ],
 
