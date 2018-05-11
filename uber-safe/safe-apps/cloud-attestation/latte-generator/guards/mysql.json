@@ -2,7 +2,7 @@
   "name": "MySQL",
   "comment-envs": "the TrustedSourceProperty should be some meaningful property",
   "envs": {
-    "MysqlClientSource": "\"https://github.com/jerryz920/dbt2\""
+    "MysqlClientSource": "\"https://github.com/jerryz920/dbt2.git#master\""
   },
   "comment-trustwallet": "it defines additional trusts besides those from endorsers",
   "trustWallet": [
@@ -11,7 +11,8 @@
   "comment-rules": "These rules are used for helper, will be linked on TrustedCode set",
   "rules": [
     [
-      "checkMySQLImage(Image)",
+      "checkMySQLImage(Instance)",
+      "launches(Instance, Image)",
       "buildsFrom(Image, Source)",
       "checkMySQLSource(Source)"
     ],

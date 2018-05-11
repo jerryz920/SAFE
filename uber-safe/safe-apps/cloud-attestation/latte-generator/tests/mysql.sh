@@ -21,7 +21,7 @@ postVMInstance $IAAS "vm-builder" "image-builder" "128.105.104.122:1-65535" "192
 #postEndorsement "$BUILDER" "image-spark" "source" "https://github.com/intel/hibench"
 
 postEndorsementLink "noauth:vm" "vm-builder" "image-mysql"
-postEndorsement "vm-builder" "image-mysql" "source" "https://github.com/jerryz920/dbt2"
+postEndorsement "vm-builder" "image-mysql" "source" "https://github.com/jerryz920/dbt2.git#master"
 
 create() {
   for n in `seq 1 $N`; do
@@ -64,7 +64,10 @@ time create
 #checkAttester $IaaS vm1-ctn1
 #
 
-checkMySQLConnection "anyone" "10.10.1.40:39875"
+for n in `seq 1 50`; do
+checkMySQLConnection "mysql-router" "10.10.1.40:43816"
+done
+
 
 
 

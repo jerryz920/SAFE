@@ -14,8 +14,8 @@
     [
       "approveConnections(Instance)",
       "launches(Instance, Image)",
-      "endorse(Source, $PropertyDns, Dns)",
       "buildsFrom(Image, Source)",
+      "endorse(Source, $PropertyDns, Dns)",
       "approvedDns(Dns)",
       "\\+(invalidConnection(Instance))"
     ],
@@ -27,7 +27,7 @@
     [
       "allowConnect(Service, Url)",
       "approvedNetwork(Service, ApprovedNetwork)",
-      "Url <:ApprovedNetwork"
+      "Url <: ApprovedNetwork"
     ]
   ],
 

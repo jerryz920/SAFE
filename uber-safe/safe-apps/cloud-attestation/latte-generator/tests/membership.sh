@@ -58,7 +58,7 @@ create() {
 #time create
 
 
-#export AUTH=1
+export AUTH=1
 postCluster vm1-ctn1 "spark" "ownerguardtext" "joinguardtext"
 for n in `seq 2 8`; do
   for m in `seq 2 8`; do
@@ -68,7 +68,7 @@ for n in `seq 2 8`; do
     postAckMembership vm$n-ctn$m "spark" vm1-ctn1
   done
 done
-#
+
 checkTrustedCluster "noauth:alice" vm2-ctn5
 checkTrustedCluster "noauth:bob" vm3-ctn4
 

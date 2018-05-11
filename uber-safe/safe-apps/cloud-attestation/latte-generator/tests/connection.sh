@@ -9,7 +9,7 @@ source ./manual-functions
 
 
 # configs
-N=100
+N=10
 L=3
 BUILDER="128.105.104.122:1-65535"
 

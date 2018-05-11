@@ -74,6 +74,12 @@ post%(name)s() {
 # %(formalargs)s
     curl -XPOST $SAFE_ADDR/post%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\":\\"${AUTH:-1}\\"}"
 }
+measurePost%(name)s() {
+    local principal=$1
+    shift 1
+# %(formalargs)s
+    curl -s -w "post%(name)s %%{time_total}\n" -o debug.log -XPOST $SAFE_ADDR/post%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\":\\"${AUTH:-1}\\"}"
+}
 del%(name)s() {
     local principal=$1
     shift 1
@@ -272,7 +278,13 @@ check%(name)s() {
     local principal=$1
     shift 1
 # %(formalargs)s
-    curl -XPOST $SAFE_ADDR/check%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s]}"
+    curl -XPOST $SAFE_ADDR/check%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\":\\"${AUTH:-1}\\"}"
+}
+measureCheck%(name)s() {
+    local principal=$1
+    shift 1
+# %(formalargs)s
+    curl -s -w "check%(name)s %%{time_total}\n" -o debug.log -XPOST $SAFE_ADDR/check%(name)s -d "{ \\"principal\\": \\"$principal\\", \\"otherValues\\": [%(arglist)s], \\"auth\\":\\"${AUTH:-1}\\"}"
 }
         ''' % formats
 
