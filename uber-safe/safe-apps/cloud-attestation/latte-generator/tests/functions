@@ -342,51 +342,19 @@ checkTrustedCluster() {
 }
         
 
+checkMySQLConnection() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkMySQLConnection -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
 checkCodeQuality() {
     local principal=$1
     shift 1
 # ?Instance
     curl -XPOST $SAFE_ADDR/checkCodeQuality -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
-}
-        
-
-checkAttester() {
-    local principal=$1
-    shift 1
-# ?Instance
-    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
-}
-        
-
-checkEndorse() {
-    local principal=$1
-    shift 1
-# ?Instance,?Image,?Name,?Value
-    curl -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
-}
-        
-
-checkConfig() {
-    local principal=$1
-    shift 1
-# ?Instance,?Name,?Value
-    curl -XPOST $SAFE_ADDR/checkConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-checkProperty() {
-    local principal=$1
-    shift 1
-# ?Instance,?Name,?Value
-    curl -XPOST $SAFE_ADDR/checkProperty -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
-}
-        
-
-checkBuilder() {
-    local principal=$1
-    shift 1
-# ?Instance
-    curl -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
 }
         
 
@@ -398,11 +366,51 @@ checkFetch() {
 }
         
 
+checkAttester() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+}
+        
+
+checkProperty() {
+    local principal=$1
+    shift 1
+# ?Instance,?Name,?Value
+    curl -XPOST $SAFE_ADDR/checkProperty -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+        
+
 checkLaunches() {
     local principal=$1
     shift 1
 # ?Instance,?Image
     curl -XPOST $SAFE_ADDR/checkLaunches -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\"]}"
+}
+        
+
+checkConfig() {
+    local principal=$1
+    shift 1
+# ?Instance,?Name,?Value
+    curl -XPOST $SAFE_ADDR/checkConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"]}"
+}
+        
+
+checkEndorse() {
+    local principal=$1
+    shift 1
+# ?Instance,?Image,?Name,?Value
+    curl -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"]}"
+}
+        
+
+checkBuilder() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
 }
         
 

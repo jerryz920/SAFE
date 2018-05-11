@@ -3,7 +3,7 @@ lazyDeleteInstance() {
     local principal=$1
     shift 1
 # ?Instance
-    curl -XPOST $SAFE_ADDR/lazyDeleteInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"]}"
+    curl -XPOST $SAFE_ADDR/lazyDeleteInstance -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
 
 postInstanceConfig() {
@@ -17,6 +17,6 @@ postInstanceConfig() {
       shift 1
     done
 # ?Instance AnyNumberOfKVPair
-    curl -XPOST $SAFE_ADDR/postInstanceConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [$args]}"
+    curl -XPOST $SAFE_ADDR/postInstanceConfig -d "{ \"principal\": \"$principal\", \"otherValues\": [$args], \"auth\":\"${AUTH:-1}\"}"
 }
 
