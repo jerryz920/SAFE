@@ -1,0 +1,101 @@
+{
+  "name": "Spark",
+  "envs": {
+    "SparkSource": "\"https://github.com/apache/spark.git#dev\"",
+    "DriverSource": "\"https://github.com/intel-hadoop/hibench.git#dev\""
+  },
+  "trustWallet": [
+      "expectedClusterSource($SparkSource)",
+      "expectedDriverSource($DriverSource)"
+  ],
+  "rules": [
+    [
+      "checkWorkerSource(Worker)",
+      "launches(Worker, Image)",
+      "buildsFrom(Image, Source)",
+      "expectedClusterSource(Source)",
+      "hasConfig(Worker, \"cmd0\", \"start-docker-slave.sh\")"
+    ],
+    [
+      "checkMasterSource(Master)",
+      "launches(Worker, Image)",
+      "buildsFrom(Image, Source)",
+      "expectedClusterSource(Source)",
+      "hasConfig(Master, \"cmd0\", \"start-docker-master.sh\")"
+    ],
+    [
+      "checkExecutorLauncher(Executor)",
+      "H: runs(Executor, Image)",
+      "M: member(\"SparkGroup\", H)",
+      "checkMasterSource(M)"
+    ],
+    [
+      "checkDriverSource(Executor)",
+      "Driver: member(\"DriverGroup\", Executor)",
+      "launches(Driver, ImageDriver)",
+      "buildsFrom(ImageDriver, DriverSource)",
+      "expectedDriverSource(DriverSource)"
+    ]
+  ],
+
+  "Comments":"Guards for Spark",
+  "guards": {
+    "WorkerFromMaster": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkWorkerSource(Instance)"
+      ]
+    },
+    "Master": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkMasterSource(Instance)"
+      ]
+    },
+    "ExecutorFromDriver": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkExecutorLauncher(Instance)"
+      ]
+    },
+    "DriverFromHDFS": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkDriverSource(Instance)"
+      ]
+    }
+
+  }
+}

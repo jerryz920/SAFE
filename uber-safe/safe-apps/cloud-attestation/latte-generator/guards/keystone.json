@@ -1,0 +1,36 @@
+{
+  "name": "Keystone",
+  "envs": {
+    "KeystoneClientSource": "\"https://github.com/jerryz920/kvclient.git#master\""
+  },
+  "trustWallet": [
+      "approvedSource($KeystoneClientSource)"
+  ],
+  "rules": [
+    [
+      "checkKeystoneRequesterImage(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "checkKeystoneRequesterSource(Source)"
+    ],
+    [
+      "checkKeystoneRequesterSource(Source)",
+      "approvedSource(Source)"
+    ]
+  ],
+
+  "guards": {
+    "KeystoneReq": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkKeystoneRequesterImage($Instance)"
+      ]
+    }
+  }
+}

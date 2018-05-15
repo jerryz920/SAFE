@@ -501,6 +501,21 @@ measureCheckContainerIsolation() {
 }
         
 
+checkKeystoneReq() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkKeystoneReq -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckKeystoneReq() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -s -w "checkKeystoneReq %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkKeystoneReq -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
 checkClusterGuard() {
     local principal=$1
     shift 1
@@ -561,18 +576,93 @@ measureCheckCodeQuality() {
 }
         
 
-checkFetch() {
+checkWorkerFromMaster() {
     local principal=$1
     shift 1
 # ?Instance
-    curl -XPOST $SAFE_ADDR/checkFetch -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+    curl -XPOST $SAFE_ADDR/checkWorkerFromMaster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
-measureCheckFetch() {
+measureCheckWorkerFromMaster() {
     local principal=$1
     shift 1
 # ?Instance
-    curl -s -w "checkFetch %{time_total}
-" -o debug.log -XPOST $SAFE_ADDR/checkFetch -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+    curl -s -w "checkWorkerFromMaster %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkWorkerFromMaster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
+checkDriverFromHDFS() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkDriverFromHDFS -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckDriverFromHDFS() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -s -w "checkDriverFromHDFS %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkDriverFromHDFS -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
+checkMaster() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkMaster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckMaster() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -s -w "checkMaster %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkMaster -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
+checkExecutorFromDriver() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkExecutorFromDriver -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckExecutorFromDriver() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -s -w "checkExecutorFromDriver %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkExecutorFromDriver -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
+checkBuilder() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckBuilder() {
+    local principal=$1
+    shift 1
+# ?Instance
+    curl -s -w "checkBuilder %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+        
+
+checkBuildsFrom() {
+    local principal=$1
+    shift 1
+# ?Instance,?Image,?Value
+    curl -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"], \"auth\":\"${AUTH:-1}\"}"
+}
+measureCheckBuildsFrom() {
+    local principal=$1
+    shift 1
+# ?Instance,?Image,?Value
+    curl -s -w "checkBuildsFrom %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"], \"auth\":\"${AUTH:-1}\"}"
 }
         
 
@@ -606,33 +696,18 @@ measureCheckLaunches() {
 }
         
 
-checkEndorse() {
+checkAttester() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?Name,?Value
-    curl -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"], \"auth\":\"${AUTH:-1}\"}"
+# ?Instance
+    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
-measureCheckEndorse() {
+measureCheckAttester() {
     local principal=$1
     shift 1
-# ?Instance,?Image,?Name,?Value
-    curl -s -w "checkEndorse %{time_total}
-" -o debug.log -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"], \"auth\":\"${AUTH:-1}\"}"
-}
-        
-
-checkBuildsFrom() {
-    local principal=$1
-    shift 1
-# ?Instance,?Image,?Value
-    curl -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"], \"auth\":\"${AUTH:-1}\"}"
-}
-measureCheckBuildsFrom() {
-    local principal=$1
-    shift 1
-# ?Instance,?Image,?Value
-    curl -s -w "checkBuildsFrom %{time_total}
-" -o debug.log -XPOST $SAFE_ADDR/checkBuildsFrom -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\"], \"auth\":\"${AUTH:-1}\"}"
+# ?Instance
+    curl -s -w "checkAttester %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
         
 
@@ -651,33 +726,33 @@ measureCheckConfig() {
 }
         
 
-checkAttester() {
+checkFetch() {
     local principal=$1
     shift 1
 # ?Instance
-    curl -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+    curl -XPOST $SAFE_ADDR/checkFetch -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
-measureCheckAttester() {
+measureCheckFetch() {
     local principal=$1
     shift 1
 # ?Instance
-    curl -s -w "checkAttester %{time_total}
-" -o debug.log -XPOST $SAFE_ADDR/checkAttester -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+    curl -s -w "checkFetch %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkFetch -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
 }
         
 
-checkBuilder() {
+checkEndorse() {
     local principal=$1
     shift 1
-# ?Instance
-    curl -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+# ?Instance,?Image,?Name,?Value
+    curl -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"], \"auth\":\"${AUTH:-1}\"}"
 }
-measureCheckBuilder() {
+measureCheckEndorse() {
     local principal=$1
     shift 1
-# ?Instance
-    curl -s -w "checkBuilder %{time_total}
-" -o debug.log -XPOST $SAFE_ADDR/checkBuilder -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\"], \"auth\":\"${AUTH:-1}\"}"
+# ?Instance,?Image,?Name,?Value
+    curl -s -w "checkEndorse %{time_total}
+" -o debug.log -XPOST $SAFE_ADDR/checkEndorse -d "{ \"principal\": \"$principal\", \"otherValues\": [\"${1}\",\"${2}\",\"${3}\",\"${4}\"], \"auth\":\"${AUTH:-1}\"}"
 }
         
 
