@@ -14,14 +14,14 @@
       "launches(Worker, Image)",
       "buildsFrom(Image, Source)",
       "expectedClusterSource(Source)",
-      "hasConfig(Worker, \"cmd0\", \"start-docker-slave.sh\")"
+      "hasConfig(Worker, \"cmd0\", \"docker-start-slave.sh\")"
     ],
     [
       "checkMasterSource(Master)",
       "launches(Worker, Image)",
       "buildsFrom(Image, Source)",
       "expectedClusterSource(Source)",
-      "hasConfig(Master, \"cmd0\", \"start-docker-master.sh\")"
+      "hasConfig(Master, \"cmd0\", \"docker-start-master.sh\")"
     ],
     [
       "checkExecutorLauncher(Executor)",
