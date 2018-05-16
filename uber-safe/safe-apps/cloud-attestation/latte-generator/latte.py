@@ -42,9 +42,11 @@ def add_latte_statements(slang, conf):
             [
                 Expression("?HostSet", ":=", "label($BearerRef, \"instance/$Self\")"),
                 Expression("?HubSet", ":=", "label(?TrustHub, \"trusthub\")"),
+                Expression("?SelfSet", ":=", "label($Self, \"instance/$Self\")"),
             ], 
             "link($HostSet)",
             "link($HubSet)",
+            "link($SelfSet)",
             "runs($Instance, $Image)",
             "label(\"instance/$Instance\")"
             )
@@ -55,10 +57,12 @@ def add_latte_statements(slang, conf):
                 #Expression("?ControlSet", ":=", "label($IaaS, \"control/?Instance\")"),
                 Expression("?VpcSet", ":=", "label(\"vpc/?Vpc\")"),
                 Expression("?HubSet", ":=", "label(?TrustHub, \"trusthub\")"),
+                Expression("?SelfSet", ":=", "label($Self, \"instance/$Self\")"),
             ], 
             #"link($ControlSet)",
             "link($VpcSet)",
             "link($HubSet)",
+            "link($SelfSet)",
             "root(\"$IaaS\")",
             "config($Instance,$PropertyVpcId, $Vpc)",
             "runs($Instance, $Image)",
@@ -191,7 +195,10 @@ def add_latte_statements(slang, conf):
 
     slang.add_attestation_str("Membership",
             ["?Cluster", "?WorkerID"],
-            [],
+            [
+                Expression("?MasterSet", ":=", "label($BearerRef, \"instance/$Self\")")
+            ],
+            "link($MasterSet)", # hostset: this is different from below label!
             "member($Cluster, $WorkerID)",
             "label(\"instance/$Self\")" # self claim
             )
@@ -279,9 +286,9 @@ def add_latte_lib(slang, conf):
             "trustedCloudProvider(Instance)")
 
 
-    librarySet.add_rule_str(
-            "builder(Instance)",
-            "checkProperty(Instance, $PropertyBuilder, 1)")
+#    librarySet.add_rule_str(
+#            "builder(Instance)",
+#            "checkProperty(Instance, $PropertyBuilder, 1)")
 
     librarySet.add_rule_str(
             "builder(Instance)",

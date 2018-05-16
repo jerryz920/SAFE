@@ -1,11 +1,11 @@
 {
   "name": "Spark",
   "envs": {
-    "SparkSource": "\"https://github.com/apache/spark.git#dev\"",
     "DriverSource": "\"https://github.com/intel-hadoop/hibench.git#dev\""
   },
   "trustWallet": [
       "expectedClusterSource($SparkSource)",
+      "builderSource($SparkSource)",
       "expectedDriverSource($DriverSource)"
   ],
   "rules": [
@@ -33,8 +33,8 @@
       "checkDriverSource(Executor)",
       "Driver: member(\"DriverGroup\", Executor)",
       "launches(Driver, ImageDriver)",
-      "buildsFrom(ImageDriver, DriverSource)",
-      "expectedDriverSource(DriverSource)"
+      "buildsFrom(ImageDriver, ActualDriverSource)",
+      "expectedDriverSource(ActualDriverSource)"
     ]
   ],
 
@@ -51,7 +51,7 @@
 	"$InstanceSet"
       ],
       "queries": [
-	"checkWorkerSource(Instance)"
+	"checkWorkerSource($Instance)"
       ]
     },
     "Master": {
@@ -65,7 +65,7 @@
 	"$InstanceSet"
       ],
       "queries": [
-	"checkMasterSource(Instance)"
+	"checkMasterSource($Instance)"
       ]
     },
     "ExecutorFromDriver": {
@@ -79,7 +79,7 @@
 	"$InstanceSet"
       ],
       "queries": [
-	"checkExecutorLauncher(Instance)"
+	"checkExecutorLauncher($Instance)"
       ]
     },
     "DriverFromHDFS": {
@@ -93,7 +93,7 @@
 	"$InstanceSet"
       ],
       "queries": [
-	"checkDriverSource(Instance)"
+	"checkDriverSource($Instance)"
       ]
     }
 

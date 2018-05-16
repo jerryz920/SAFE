@@ -2,7 +2,7 @@
 
 script=`readlink -f $0`
 workdir=`dirname $script`
-RIAK_IP=${RIAK_IP:-localhost}
+RIAK_IP=${RIAK_IP:-10.10.1.3}
 guard="image-builder"
 
 

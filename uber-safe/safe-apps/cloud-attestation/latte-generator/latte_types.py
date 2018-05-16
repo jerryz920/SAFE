@@ -154,7 +154,8 @@ class Fact(object):
             return "%s\+(%s(%s))" % (prefix, self.pred, ",".join(self.args))
 
     def to_revoke(self):
-        if self.pred == "label":
+        # Don't revoke link or label, which will make things abnormal
+        if self.pred == "label" or self.pred == "link":
             return self.to_str() + "."
         else:
             return self.to_str() + "~"
