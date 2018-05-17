@@ -61,19 +61,17 @@ class RestfulService(val storeURI: String, val role: Option[String], slangFile: 
   def receive: Receive = runRoute(route(guardTable.allGuards.toSeq) ~ importSlangRoute())
 
   def runImportSlang(args: Seq[String], 
-      requestTimeout: Timeout, isSlangSource: Boolean): Route = { reqContext: RequestContext => 
+      requestTimeout: Timeout): Route = { reqContext: RequestContext => 
 
     import scala.language.postfixOps 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    logger.info(s"""Import slang programs: ${args.mkString("; ")}      isSlangSource: ${isSlangSource}""")
+    logger.info(s"""Import slang programs: ${args.mkString("; ")}""")
     //println(s"""Import slang programs: ${args.mkString("; ")}""")
     val result = Future {
-      for(arg <- args) {
+      for(file <- args) {
         val slang = slangManager.createSafelang()
-        val _guards = if(isSlangSource)
-                        slang.compileAndGetGuardsWithSource(arg)
-                      else slang.compileAndGetGuards(arg) 
+        val _guards = slang.compileAndGetGuards(file) 
         guardTable.addGuards(_guards)
       }
     } 
@@ -90,12 +88,7 @@ class RestfulService(val storeURI: String, val role: Option[String], slangFile: 
   def importSlangRoute(): Route = {
     path("import")  {
       postWithParameters { (params) =>
-        runImportSlang(params.otherValues, requestTimeout, false)
-      }
-    } ~
-    path("importSource") {
-      postWithParameters { (params) =>
-        runImportSlang(params.otherValues, requestTimeout, true)
+        runImportSlang(params.otherValues, requestTimeout)
       }
     }
   }
