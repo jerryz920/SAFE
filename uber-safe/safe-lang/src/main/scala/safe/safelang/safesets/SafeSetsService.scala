@@ -34,7 +34,35 @@ trait SafeSetsService {
  * go to local safesets: a local directory on disk 
  * containing certificates in individual files. The path 
  * of this local safeset is set by Config.config.safeSetsDir 
+ *
+ * It deals with these kinds of links (tokens) as described 
+ * below:
+ *
+ * 0) Self certifying links: [PID]:[LabelHash]. Each principal
+ * has its own shard comprised of a list of preferred set
+ * stores. Links to identity sets only have the PID part.
+ * Read/write requests through these links are served by a
+ * well-known metastore.  
+ *
+ * 1) Flat links: [Hash of PID+Labelhash]. This happens when
+ * set sharding (thus self certifying tokens) is turned off. The
+ * metastore stores the sets and serves read/write requests.
+ *
+ * The code considers 1) and 2) under the same model: self
+ * certifying tokens, with ID set tokens and flat tokens being
+ * a non-trivial subset of self certifying tokens. All non-trivial
+ * self certifying tokens point to sets stored on the metastore.
+ *
+ * 2) Web links: [Web url], e.g., 
+ * http://152.3.145.253:8098/types/safesets/buckets/safe/keys/cert0 
+ * Only read operations on these links at the moment.
+ *
+ * 3) LDAP links: [LDAP server addr]/[Search base]
+ * For example:
+ * ldap://registry-test.cilogon.org:389/ou=people,o=ImPACT,dc=cilogon,dc=org 
+ * Only read operations at the moment. 
  */
+
 class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
   //import system.dispatcher   // execution context for futures
   import HttpMultipartContentHelper._
@@ -51,7 +79,7 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
   /**
    * SSLSession with a set store can be reused across multiple requests.
    * Server authentication as part of the SSL handshake is done when 
-   * the first request is processed. Subsequent requests just share the  
+   * the first request is processed. Subsequent requests just use the  
    * established SSL session. 
    *
    * A TLS storage client (based on Apache) provides the server's public
@@ -71,9 +99,11 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
   //  DiskaccessStorageClient()
   //} else {  SprayStorageClient(system) }
 
-  val storageclient: StorageClient = SprayStorageClient(system)
-  val diskaccessclient: StorageClient = DiskaccessStorageClient()
-  val tlsstorageclient: StorageClient = ApacheStorageClient(Config.config.sslOn, this) 
+  val storageclient: StorageClient = SprayStorageClient(system)                         // default client, via http
+  val diskaccessclient: StorageClient = DiskaccessStorageClient()                       // Local disk
+  val tlsstorageclient: StorageClient = ApacheStorageClient(Config.config.sslOn, this)  // tls client, via https 
+  val cassandraclient: StorageClient = CassandraStorageClient()                         // cassandra client, via its native protocol
+  val ldapclient: LDAPClient = new LDAPClient()                                      // ldap client, read only
 
   /**
    * A Self-certifying cert token is in the following format:
@@ -93,17 +123,28 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     sctoken.substring(0, i)
   }
 
-  def isIDSetToken(sctoken: String): Boolean = {
+  /**
+   * Check if a token is an ID set token or a flat token. We start with
+   * every token being a self certifying token and consider ID set tokens
+   * and flat tokens are a special case of self certifying tokens.
+   */
+  def isIDSetTokenOrFlatToken(sctoken: String): Boolean = {
     val i = sctoken.lastIndexOf(":")
     if(i < 0) {
-      logger.info(s"ID set token: ${sctoken}")
+      logger.info(s"Non-trivial self certifying token (ID set token or flat token): ${sctoken}")
       true
     } else {
-      logger.info(s"Non-ID set token: ${sctoken}")
+      logger.info(s"Trivial self certifying token: ${sctoken}")
       false
     }
   }
 
+  /**
+   * Take a self certifying token and return the desc of the
+   * set store that holds the set. For tokens of id sets and
+   * tokens that are generated without enabling self certifying
+   * token (flat tokens), the sets are hosted on the metastore.
+   */
   def getSetStoreDescForSelfCertifyingToken(sctoken: String): SetStoreDesc = {
     val pid = getPIDFromSelfCertifyingToken(sctoken)
     if(pid.isEmpty) {
@@ -132,10 +173,17 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     }
   }
 
+  /**
+   * Compute certificate address of a self certifying token.
+   * Note that flat tokens (tokens that are generated with self certifying
+   * tokens disabled) and ID set tokens are a special case of self certifying
+   * tokens, in the sense that these tokens only have the PID part and that all
+   * go to the metastore.
+   */
   def getCertAddrFromSelfCertifyingToken(sctoken: String): CertAddr = {
     val ss: SetStoreDesc = getSetStoreDescForSelfCertifyingToken(sctoken)
     var hashToken: String = sctoken
-    if(!isIDSetToken(sctoken)) {
+    if(!isIDSetTokenOrFlatToken(sctoken)) {
       hashToken = Identity.encode(Identity.hash(sctoken.getBytes(
                                                 StringEncoding),"SHA-256"), "base64URLSafe")
     }
@@ -171,6 +219,8 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     val p: Int = certaddr.getStoreProtocol
     if(p == SetStoreDesc.HTTP) {
       storageclient.postCert(certaddr, content) 
+    } else if(p == SetStoreDesc.CASSANDRA_NATIVE) {
+      cassandraclient.postCert(certaddr, content)
     } else if(p == SetStoreDesc.HTTPS) {
       // Set up store authN entry before request
       val storeaddr: String = certaddr.getStoreAddr
@@ -191,6 +241,8 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     val p: Int = certaddr.getStoreProtocol
     if(p == SetStoreDesc.HTTP) {
       storageclient.fetchCert(certaddr) 
+    } else if (p == SetStoreDesc.CASSANDRA_NATIVE) {
+      cassandraclient.fetchCert(certaddr) 
     } else if(p == SetStoreDesc.HTTPS) {
       // Set up store authN entry before request
       val storeaddr: String = certaddr.getStoreAddr
@@ -213,6 +265,8 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     val p: Int = certaddr.getStoreProtocol
     if(p == SetStoreDesc.HTTP) {
       storageclient.deleteCert(certaddr) 
+    } else if(p == SetStoreDesc.CASSANDRA_NATIVE) {
+      cassandraclient.deleteCert(certaddr)
     } else if(p == SetStoreDesc.HTTPS) {
       // Set up store authN entry before request
       val storeaddr: String = certaddr.getStoreAddr
@@ -273,7 +327,7 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     val setIdHash = Identity.hash(namespace.getBytes(StringEncoding), "SHA-256")
     val t = Identity.encode(setIdHash, "base64URLSafe")
     val res1 = (t == token)
-    if(!res) {
+    if(!res1) {
       throw UnSafeException(s"Token doesn't checkout   token:${token}  speaker:${speaker}   label:${label}  t:${t}")
     }
 
@@ -290,15 +344,18 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
   } 
 
   /**
-   * Parse and convert a cert to a datalog-based SlogSet
+   * Parse and convert a cert to a datalog SlogSet
    */
   def parseASlogSet(cert: String): SlogSet = {
     val slangParser = Parser()
     slangParser.parseCertificate(cert)
   }
 
-  def fetchSlogSet(token: String): Seq[SlogSet] = {
-    val certaddr = getCertAddrFromSelfCertifyingToken(token)
+  def fetchSlogSet(certaddr: CertAddr): Seq[SlogSet] = {
+    val p: Int = certaddr.getStoreProtocol
+    if(p == SetStoreDesc.LDAP) {  // using ldapclient to fetch slog set directly
+      return ldapclient.fetchSlogSet(certaddr)
+    }
     val rawCert: Option[String] = if(localSafeSets) {
           diskaccessclient.fetchCert(certaddr) } else { fetchCert(certaddr) }
     val start = System.nanoTime
@@ -313,7 +370,7 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
           // Collect set-parsing time
           val t = (System.nanoTime - start) / 1000
           val length = cert.length
-          slangPerfCollector.addSetParsingTime(t.toString, s"$token $length")
+          slangPerfCollector.addSetParsingTime(t.toString, s"${certaddr.getUrl} $length")
 
           Seq(s) 
         } else {
@@ -343,6 +400,28 @@ class SafeSetsClient(val system: ActorSystem) extends LazyLogging {
     slogsets
   }
 
+
+  def fetchSlogSet(token: String): Seq[SlogSet] = {
+    /**
+     * Web links and LDAP links serve as entry points to
+     * external endorsements, and these links are ready only.
+     * For the links, a token itself identifies a cert
+     * address. 
+     *
+     * 1) A web link begins with "http://"
+     *
+     * 2) An LDAP link begins with "ldap://"
+     *
+     */
+    val certaddr = token.substring(0, 7)  match {
+      case "ldap://" => CertAddr(SetStoreDesc(token, SetStoreDesc.LDAP, ""), "") 
+      case "http://" => CertAddr(SetStoreDesc(token, SetStoreDesc.HTTP, ""), "") 
+      case _ => getCertAddrFromSelfCertifyingToken(token) 
+    } 
+    //val certaddr = getCertAddrFromSelfCertifyingToken(token)
+    
+    fetchSlogSet(certaddr)
+  }
 
   def deleteSlogSet(token: String): String = {
     val certaddr = getCertAddrFromSelfCertifyingToken(token)
