@@ -199,7 +199,7 @@ def add_latte_statements(slang, conf):
                 Expression("?MasterSet", ":=", "label($BearerRef, \"instance/$Self\")")
             ],
             "link($MasterSet)", # hostset: this is different from below label!
-            "member($Cluster, $WorkerID)",
+            "member($WorkerID, $Cluster)",
             "label(\"instance/$Self\")" # self claim
             )
 

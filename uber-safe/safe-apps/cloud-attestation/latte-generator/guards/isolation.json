@@ -31,7 +31,7 @@
       "H:config(Instance, \"ipcns\", \"default\")",
       "H:config(Instance, \"apparmor-profile\", \"default\")",
       "H:config(Instance, \"privileged\", \"false\")",
-      "\\+ (hasConfig(Instance, \"mount\", Path))",
+      "H:config(Instance, \"mount\", \"null\"))",
       "attester(H)",
       "launches(H, TapconImage)",
       "kernelBuildConfig(TapconImage, \"apparmor\", 1)",

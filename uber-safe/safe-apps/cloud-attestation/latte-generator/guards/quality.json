@@ -8,19 +8,15 @@
     "fatalCVE(\"cve-2017-8834\")",
     "fatalCVE(\"cve-2017-7691\")",
     "fatalCVE(\"cve-2017-7960\")",
+    "clearance(\"no-crit-cve-2017\", \"true\")",
     "scannerSource($ScannerSource)"
   ],
   "rules": [
     [
       "checkVulnerability(Instance)",
-      "\\+(vulnerable(Instance))"
-    ],
-    [
-      "vulnerable(Instance)",
-      "launches(Instance, Image)",
-      "buildsFrom(Image, Source)",
-      "Scanner: endorse(Source, \"cve\", Cve)",
-      "fatalCVE(Cve)",
+      "launches(Instance, \"image-ctn\")",
+      "Scanner: endorse(Image, Prop, Value)",
+      "clearance(Prop, Value)",
       "clairScanner(Scanner)"
     ],
     [
