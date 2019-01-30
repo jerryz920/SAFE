@@ -21,8 +21,9 @@ ENV SBT_VERSION 0.13.12
 RUN cd ~/ && wget https://dl.bintray.com/sbt/native-packages/sbt/${SBT_VERSION}/sbt-${SBT_VERSION}.tgz
 RUN cd ~/ && tar -zxvf sbt-${SBT_VERSION}.tgz
 
-# Download SAFE
-RUN cd ~/ && git clone https://github.com/RENCI-NRIG/SAFE.git
+COPY prevent-cache /tmp/
+RUN cd ~/ && git clone -b latte https://github.com/jerryz920/SAFE.git
+RUN cd ~/SAFE/uber-safe && PATH=$PATH:$HOME/sbt/bin bash build.sh
 
 ENTRYPOINT ["/bin/bash", "/root/start.sh"]
 #ENTRYPOINT ["/bin/sh", "-c"]

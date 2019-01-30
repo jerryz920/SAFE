@@ -1,0 +1,98 @@
+ceAXW6D30rn1FnrbNCjoRZdrHBtte2nEdxkbKwqao-8: {
+  ceAXW6D30rn1FnrbNCjoRZdrHBtte2nEdxkbKwqao-8
+  
+  vm-builder
+  2018-04-28T12:11:03.343-04:00, 2021-04-28T12:11:03.343-04:00, PT720H
+  SHA256withRSA
+  endorsements/image-vm
+  
+  endorse('image-vm',source,github).
+}
+
+paReGGundaxAIJvC8MW5M61teszdIdblcVyTW92eLk8: {
+  paReGGundaxAIJvC8MW5M61teszdIdblcVyTW92eLk8
+  
+  152.3.145.38:444
+  2018-04-28T12:11:03.232-04:00, 2021-04-28T12:11:03.232-04:00, PT720H
+  SHA256withRSA
+  instance/vm-builder
+  
+  link('0hp53xGA3mddj3LkwewIweyYaNQEUfqvhmLuYjafRjo').
+  link(nYZMTGFoRiP8U5AzqeXEXsviSdUdGldwC6I2IwfaKnw).
+  link('ZEthLz15M7V2js_eWCx_qmM6YKGkWdfdSr5yRqjUEBQ').
+  link('4-OGy3SxYSbSD_KgOwKvijb7wkaC5SicxKKoX2z5Los').
+  runs('vm-builder','image-builder').
+  bindToId('vm-builder',ipv4"128.105.104.122",port"1-65535").
+  allocate(ipv4"128.105.104.122",'192.167.1.0/24').
+}
+
+X9YetTlMrReQ9X3_YYryGGF_S1nxxNPMPMPvSQGDmTY: {
+  X9YetTlMrReQ9X3_YYryGGF_S1nxxNPMPMPvSQGDmTY
+  
+  152.3.145.38:444
+  2018-04-28T12:11:02.951-04:00, 2021-04-28T12:11:02.951-04:00, PT720H
+  SHA256withRSA
+  vpc/vpc1
+  
+  config(vpc1,secgroup,'tcp:0.0.0.0:2376').
+  config(vpc1,secgroup,'tcp:0.0.0.0:8080').
+}
+
+onUjOG-Bt3fAF9OCZNuXiHGOtn7wHRhPbg4sngH8iQ0: {
+  onUjOG-Bt3fAF9OCZNuXiHGOtn7wHRhPbg4sngH8iQ0
+  
+  152.3.145.38:444
+  2018-04-28T12:11:03.168-04:00, 2021-04-28T12:11:03.168-04:00, PT720H
+  SHA256withRSA
+  control/vm1
+  
+  controls('152.3.145.38:444',vm1).
+}
+
+ZEthLz15M7V2js_eWCx_qmM6YKGkWdfdSr5yRqjUEBQ: {
+  ZEthLz15M7V2js_eWCx_qmM6YKGkWdfdSr5yRqjUEBQ
+  
+  152.3.145.38:444
+  2018-04-28T12:11:03.288-04:00, 2021-04-28T12:11:03.288-04:00, PT720H
+  SHA256withRSA
+  control/vm-builder
+  
+  controls('152.3.145.38:444','vm-builder').
+}
+
+UgH_v86DWvuT5SYDszBjXk1l7f6TP1kbyIWT0B21KzE: {
+  UgH_v86DWvuT5SYDszBjXk1l7f6TP1kbyIWT0B21KzE
+  
+  152.3.145.38:444
+  2018-04-28T12:11:03.131-04:00, 2021-04-28T12:11:03.131-04:00, PT720H
+  SHA256withRSA
+  instance/vm1
+  
+  link('ojB9Q47zvOPR-_q8AXaiH3EMurymAyB-V_jKvRMs2Ts').
+  link(nYZMTGFoRiP8U5AzqeXEXsviSdUdGldwC6I2IwfaKnw).
+  link('onUjOG-Bt3fAF9OCZNuXiHGOtn7wHRhPbg4sngH8iQ0').
+  link('X9YetTlMrReQ9X3_YYryGGF_S1nxxNPMPMPvSQGDmTY').
+  runs(vm1,'image-vm').
+  config(vm1,c1,v1).
+  config(vm1,c2,v2).
+  config(vm1,c3,v3).
+  config(vm1,c4,v4).
+  bindToId(vm1,ipv4"192.168.0.1",port"1-65535").
+  allocate(ipv4"192.168.0.1",'192.168.1.0/24').
+}
+
+ojB9Q47zvOPR-_q8AXaiH3EMurymAyB-V_jKvRMs2Ts: {
+  ojB9Q47zvOPR-_q8AXaiH3EMurymAyB-V_jKvRMs2Ts
+  
+  152.3.145.38:444
+  2018-04-28T12:11:02.562-04:00, 2021-04-28T12:11:02.562-04:00, PT720H
+  SHA256withRSA
+  control/image-vm
+  
+  link('ceAXW6D30rn1FnrbNCjoRZdrHBtte2nEdxkbKwqao-8').
+}
+
+b5SCs-dUqRWMvs1GbwvwRC9Pi9yHYuSVj6oxLSU8wXs: {
+  herzlich willkommen
+}
+

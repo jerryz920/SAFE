@@ -8,6 +8,7 @@ RUN apt-get install -y git curl make htop vim emacs wget
 RUN apt-get install -y libssl1.0.0
 RUN apt-get install -y libpam0g-dev
 RUN apt-get install -y libssl-dev
+RUN apt-get install -y dnsutils
 
 COPY start.sh   /root/
 COPY test.sh    /root/

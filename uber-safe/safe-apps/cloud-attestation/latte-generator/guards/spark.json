@@ -1,0 +1,125 @@
+{
+  "name": "Spark",
+  "envs": {
+    "DriverSource": "\"https://github.com/intel-hadoop/hibench.git#dev\""
+  },
+  "trustWallet": [
+      "expectedClusterSource($SparkSource)",
+      "builderSource($SparkSource)",
+      "expectedDriverSource($DriverSource)",
+      "clairImage(\"image-scanner\")"
+  ],
+  "rules": [
+    [
+      "checkWorkerSource(Worker)",
+      "launches(Worker, Image)",
+      "buildsFrom(Image, Source)",
+      "expectedClusterSource(Source)",
+      "hasConfig(Worker, \"cmd0\", \"docker-start-slave.sh\")"
+    ],
+    [
+      "checkMasterSource(Master)",
+      "launches(Worker, Image)",
+      "buildsFrom(Image, Source)",
+      "expectedClusterSource(Source)",
+      "hasConfig(Master, \"cmd0\", \"docker-start-master.sh\")",
+      "hasConfig(Master, \"volume\", \"null\")",
+      "Clair: endorse(Image, \"no-crit-cve\", \"true\")",
+      "launches(Clair, ImageC)",
+      "clairImage(ImageC)"
+    ],
+    [
+      "checkExecutorLauncher(Executor)",
+      "H: runs(Executor, Image)",
+      "M: member(H,\"SparkGroup\")",
+      "checkMasterSource(M)"
+    ],
+    [
+      "checkDriverSource(Executor)",
+      "Driver: member(Executor, \"DriverGroup\")",
+      "launches(Driver, ImageDriver)",
+      "buildsFrom(ImageDriver, ActualDriverSource)",
+      "expectedDriverSource(ActualDriverSource)"
+    ],
+    [
+      "checkAll(Executor)",
+      "checkDriverSource(Executor)",
+      "checkExecutorLauncher(Executor)"
+    ]
+  ],
+
+  "Comments":"Guards for Spark",
+  "guards": {
+    "WorkerFromMaster": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkWorkerSource($Instance)"
+      ]
+    },
+    "Master": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkMasterSource($Instance)"
+      ]
+    },
+    "ExecutorFromDriver": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkExecutorLauncher($Instance)"
+      ]
+    },
+    "DriverFromHDFS": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkDriverSource($Instance)"
+      ]
+    },
+    "AllForSparkEvaluation": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkAll($Instance)"
+      ]
+    }
+
+  }
+}

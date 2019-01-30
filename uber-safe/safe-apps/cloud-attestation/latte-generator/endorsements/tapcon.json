@@ -1,0 +1,31 @@
+{
+  "envs": {
+    "TapConSource": "\"https://github.com/jerryz920/boot2docker.git#dev\"",
+    "TapConDockerSource": "\"https://github.com/jerryz920/docker.git#dev\"",
+    "TapConLinuxSource": "\"https://github.com/jerryz920/linux.git#tapcon-v4.4.39\""
+  },
+  "name": "tapconSet",
+  "label": "$TapConSource",
+  "speaker": "0x12345678",
+  "attestations" : [
+        "kernelBuildConfig($TapConSource, \"namespace\", 1)",
+        "kernelBuildConfig($TapConSource, \"selinux\", 1)",
+        "kernelBuildConfig($TapConSource, \"seccomp\", 1)",
+        "kernelBuildConfig($TapConSource, \"apparmor\", 1)",
+        "kernelBuildConfig($TapConSource, \"portext\", 1)",
+	"endorse($TapConSource, $PropertyNossh, 1)",
+	"endorse($TapConSource, $PropertyDns, \"8.8.8.8\")",
+	"endorse($TapConSource, $PropertyPackage, \"docker\")",
+	"endorse($TapConSource, $PropertyPackage, \"dhcpcd\")",
+	"endorse($TapConSource, $PropertyPackage, \"syslog\")",
+	"endorse($TapConSource, $PropertyPackage, \"libc\")",
+	"packageSource($TapConSource, \"linux\", $TapConLinuxSource)",
+	"packageSource($TapConSource, \"docker\", $TapConDockerSource)",
+	"packageVersion($TapConSource, \"linux\", \"4.4.39\")",
+	"packageVersion($TapConSource, \"syslog\", \"3.9.1\")",
+	"packageVersion($TapConSource, \"dhcpcd\", \"7.0.1\")",
+	"packageVersion($TapConSource, \"libc\", \"2.6.0\")",
+	"parameterizedConnection($TapConSource, \"docker\", \"imageRepo\")",
+        "endorse($TapConSource, \"attester\", 1)"
+  ]
+}

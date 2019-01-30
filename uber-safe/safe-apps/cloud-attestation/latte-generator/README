@@ -1,0 +1,61 @@
+
+this tool generate runnable slang file for customized guards. It will
+load external endorsements and guards from file.
+
+Format of guards (JSON, only required fields listed. Other are comments):
+
+{
+  "name": string,
+  "envs": {string:string},
+  "trustWallet": [Fact],
+  "rules": [Rule],
+  "guards": {string:Guard}
+}
+
+Format of Fact: string, regex
+[\\+] [string:] string([string[,string...])
+
+Format of Rule:
+Head, Fact [,Fact] ...
+
+Format of Head:
+string([string[,string...]])
+
+Format of Guard:
+{
+  "args": [string],
+  "expr": [string, string, string],
+  "links": [string],
+  "guard": [Query]
+}
+
+Format of Query: (question mark will be generated)
+string([string[,string...]])
+
+If query needs to be query all, then we should add "?" manually. Should tweak this later
+for better type support
+
+Format of endorsements:
+{
+  "name": string,
+  "endorser": string,
+  "envs": {string:string},
+  "attestations": [Fact],
+  "rules": [Rule]
+}
+
+The trustWallet defines facts to load into default trustWallet.
+One can use env to add "must trust" content (if we have support for per-endorser safeset
+in future).
+  "trustWallet": [
+      "trustedEndorserOn(parameterizedColumnUsed, $PageRankSourceEndorser)",
+      "trustedEndorserOn(parameterizedColumnAggregated, $PageRankSourceEndorser)",
+      "trustedEndorserOn(parameterizedOutputGuard, $PageRankSourceEndorser)"
+  ],
+
+The attestations and
+rules are added to the "name" represented logic set.
+
+
+ 
+

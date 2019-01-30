@@ -1,0 +1,47 @@
+{
+  "name": "CodeQuality",
+  "envs": {
+    "ScannerSource": "\"https://github.com/arminc/clair-scanner.git#master\""
+  },
+  "comment-trustwallet": "it defines additional trusts besides those from endorsers",
+  "trustWallet": [
+    "fatalCVE(\"cve-2017-8834\")",
+    "fatalCVE(\"cve-2017-7691\")",
+    "fatalCVE(\"cve-2017-7960\")",
+    "clearance(\"no-crit-cve-2017\", \"true\")",
+    "scannerSource($ScannerSource)"
+  ],
+  "rules": [
+    [
+      "checkVulnerability(Instance)",
+      "launches(Instance, \"image-ctn\")",
+      "Scanner: endorse(Image, Prop, Value)",
+      "clearance(Prop, Value)",
+      "clairScanner(Scanner)"
+    ],
+    [
+      "clairScanner(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "scannerSource(Source)"
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "CodeQuality": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"checkVulnerability($Instance)"
+      ]
+    }
+  }
+}

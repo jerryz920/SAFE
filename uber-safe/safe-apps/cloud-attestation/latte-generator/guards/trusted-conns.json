@@ -1,0 +1,51 @@
+{
+  "name": "TrustedConnection",
+  "envs": {
+    "OpenDns": "\"8.8.8.8\"",
+    "RepoAddr": "ipv4\"10.0.0.2\"",
+    "InnerNetwork": "ipv4\"192.168.0.0/24\""
+  },
+  "trustWallet": [
+      "approvedDns($OpenDns)",
+      "approvedNetwork(\"docker\", ipv4\"192.168.0.0/24\")",
+      "approvedNetwork(\"docker\", ipv4\"10.0.0.2\")"
+  ],
+  "rules": [
+    [
+      "approveConnections(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "endorse(Source, $PropertyDns, Dns)",
+      "approvedDns(Dns)",
+      "\\+(invalidConnection(Instance))"
+    ],
+    [
+      "invalidConnection(Instance)",
+      "connection(Instance, Service, Url)",
+      "\\+allowConnect(Service, Url)"
+    ],
+    [
+      "allowConnect(Service, Url)",
+      "approvedNetwork(Service, ApprovedNetwork)",
+      "Url <: ApprovedNetwork"
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "TrustedConnections": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"approveConnections($Instance)"
+      ]
+    }
+  }
+}

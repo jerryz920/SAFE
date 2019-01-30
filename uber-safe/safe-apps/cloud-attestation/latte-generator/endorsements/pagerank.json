@@ -1,0 +1,49 @@
+{
+  "comment-envs": "0x12345678 should be a public key hash",
+  "envs": {
+    "PageRankJobSource": "\"https://github.com/intel/hibench.git\"",
+    "PageRankSourceEndorser": "\"0x12345678\""
+  },
+  "comment-name": "Name is the name of the endorsed set, one should link it",
+  "name": "pageRankSourceSet",
+  "label": "$PageRankJobSource",
+  "comment-speaker": "redundancy for the pubkey, should eliminate it later",
+  "speaker": "0x12345678",
+  "comment-attestations": "Attestations are direct facts endorsed",
+  "attestations" : [
+        "parameterizedEndorse($PageRankJobSource, \"inFile\", \"cmdArg1\")",
+        "parameterizedEndorse($PageRankJobSource, \"outFile\", \"cmdArg2\")",
+        "parameterizedColumnUsed($PageRankJobSource, \"cmdArg1\", \"url\")",
+        "parameterizedColumnUsed($PageRankJobSource, \"cmdArg1\", \"neighbor\")",
+        "parameterizedColumnAggregated($PageRankJobSource, \"cmdArg1\", \"url\", \"count\")",
+        "endorse($PageRankJobSource, \"stateless\", 1)",
+        "parameterizedOutputGuard($PageRankJobSource, \"cmdArg2\", \"outputGuard\")"
+  ],
+  "comment-rules": "Rules apply directly to the endorsed facts",
+  "rules": [
+    [
+      "columnUsed(Instance, InFileName, ColName)",
+      "parameterizedColumnUsed($PageRankJobSource, InFileArg, ColNameArg)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, $PageRankJobSource)",
+      "hasConfig(Instance, InFileArg, InFileName)",
+      "hasConfig(Instance, ColNameArg, ColName)"
+    ],
+    [
+      "columnAggregated(Instance, InFileName, ColName, OpText)",
+      "parameterizedColumnAggregated($PageRankJobSource, InFileArg, ColNameArg, OpText)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, $PageRankJobSource)",
+      "hasConfig(Instance, InFileArg, InFileName)",
+      "hasConfig(Instance, ColNameArg, ColName)"
+    ],
+    [
+      "runsOutputGuard(Instance, OutFileName, GuardText)",
+      "parameterizedOutputGuard($PageRankJobSource, OutFileArg, GuardConfName)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, $PageRankJobSource)",
+      "hasConfig(Instance, OutFileArg, OutFileName)",
+      "hasConfig(Instance, GuardConfName, GuardText)"
+    ]
+  ]
+}

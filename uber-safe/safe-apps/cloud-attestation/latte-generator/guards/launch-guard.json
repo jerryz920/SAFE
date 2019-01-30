@@ -1,0 +1,36 @@
+{
+  "name": "LaunchGuard",
+  "comment-trustwallet": "it defines additional trusts besides those from endorsers",
+  "envs": {
+    "LaunchGuardText": "@guard.slang"
+  },
+  "trustWallet": [
+      "expectedLaunchGuard($LaunchGuardText)"
+  ],
+  "rules": [
+    [
+      "checkVMClusterLaunchGuard(Instance)",
+      "H: config(Instance, \"vpcid\", ClusterID)",
+      "H: config(ClusterID, \"launchGuard\", GuardText)",
+      "trustedCloudProvider(H)",
+      "expectedLaunchGuard(GuardText)"
+    ]
+  ],
+
+  "guards": {
+    "ClusterGuard": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?HostSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"checkVMClusterLaunchGuard($Instance)"
+      ]
+    }
+  }
+}

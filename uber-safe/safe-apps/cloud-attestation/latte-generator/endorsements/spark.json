@@ -1,0 +1,11 @@
+{
+  "envs": {
+    "SparkSource": "\"https://github.com/apache/spark.git#dev\""
+  },
+  "label": "$SparkSource",
+  "name": "attesterSet",
+  "speaker": "0x12345678",
+  "attestations" : [
+        "endorse($SparkSource, \"attester\", 1)"
+  ]
+}

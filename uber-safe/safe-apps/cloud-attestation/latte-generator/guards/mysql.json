@@ -1,0 +1,40 @@
+{
+  "name": "MySQL",
+  "comment-envs": "the TrustedSourceProperty should be some meaningful property",
+  "envs": {
+    "MysqlClientSource": "\"https://github.com/jerryz920/dbt2.git#master\""
+  },
+  "comment-trustwallet": "it defines additional trusts besides those from endorsers",
+  "trustWallet": [
+      "mysqlClientSource($MysqlClientSource)"
+  ],
+  "comment-rules": "These rules are used for helper, will be linked on TrustedCode set",
+  "rules": [
+    [
+      "checkMySQLImage(Instance)",
+      "launches(Instance, Image)",
+      "buildsFrom(Image, Source)",
+      "checkMySQLSource(Source)"
+    ],
+    [
+      "checkMySQLSource(Source)",
+      "mysqlClientSource(Source)"
+    ]
+  ],
+
+  "comment-guards": "Implements an indirect image checker to accept indirect instance endorsements",
+  "guards": {
+    "MySQLConnection": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkMySQLImage($Instance)"
+      ]
+    }
+  }
+}

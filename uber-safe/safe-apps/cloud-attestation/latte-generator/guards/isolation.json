@@ -1,0 +1,62 @@
+{
+  "name": "ContainerIsolation",
+  "envs": { },
+  "trustWallet": [
+    "containerSpec(\"pidns\", \"default\")",
+    "containerSpec(\"netns\", \"default\")",
+    "containerSpec(\"mountns\", \"default\")",
+    "containerSpec(\"utsns\", \"default\")",
+    "containerSpec(\"ipcns\", \"default\")",
+    "containerSpec(\"apparmor-profile\", \"default\")",
+    "containerSpec(\"privileged\", \"false\")"
+  ],
+  "rules": [
+    [
+      "kernelBuildConfig(Image, Name, Value)",
+      "buildsFrom(Image, Source)",
+      "kernelBuildConfig(Source, Name, Value)"
+    ],
+    [
+      "unsatisfiedConfig(Instance, Conf, Value)",
+	"containerSpec(Name, Value)",
+	"hasConfig(Instance, Name, RealValue)",
+	"Value \\== RealValue"
+    ],
+    [
+      "containerIsolated(Instance)",
+      "H:config(Instance, \"pidns\", \"default\")",
+      "H:config(Instance, \"netns\", \"default\")",
+      "H:config(Instance, \"mountns\", \"default\")",
+      "H:config(Instance, \"utsns\", \"default\")",
+      "H:config(Instance, \"ipcns\", \"default\")",
+      "H:config(Instance, \"apparmor-profile\", \"default\")",
+      "H:config(Instance, \"privileged\", \"false\")",
+      "H:config(Instance, \"mount\", \"null\"))",
+      "attester(H)",
+      "launches(H, TapconImage)",
+      "kernelBuildConfig(TapconImage, \"apparmor\", 1)",
+      "kernelBuildConfig(TapconImage, \"selinux\", 1)",
+      "kernelBuildConfig(TapconImage, \"seccomp\", 1)",
+      "kernelBuildConfig(TapconImage, \"namespace\", 1)",
+      "kernelBuildConfig(TapconImage, \"portext\", 1)"
+    ]
+  ],
+
+  "comment-guards": "These are guard interfaces",
+  "guards": {
+    "ContainerIsolation": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?HostSet", ":=", "label($BearerRef, \"instance/?Instance\")"],
+	["?InstanceSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$InstanceSet",
+	"$HostSet"
+      ],
+      "queries": [
+	"containerIsolated($Instance)"
+      ]
+    }
+  }
+}
