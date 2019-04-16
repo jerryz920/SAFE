@@ -1,0 +1,73 @@
+{
+  "name": "K8sSpark",
+  "envs": { },
+  "trustWallet": [
+    "fileAcl(\"point1k.tsv\", \"kuser1\", \"46dcbbfdf9c95d5920dca19aa396cecc0a49527e2c61886f75a4d34e617b3375\")",
+    "fileAcl(\"nycb.tsv\", \"kuser1\", \"46dcbbfdf9c95d5920dca19aa396cecc0a49527e2c61886f75a4d34e617b3375\")",
+    "k8sImg(\"52af3fd4-8d42-445d-86fa-5953cffedeb5\")",
+    "sparkImg(\"spark\")"
+  ],
+  "rules": [
+    [
+      "k8sVM(Instance)",
+      "M: member(Instance, \"K8sGroup\")",
+      "k8sVM(M)"
+    ],
+    [
+      "k8sVM(Instance)",
+      "launches(Instance, Image)",
+      "k8sImg(Image)"
+    ],
+    [
+      "safeSpark(Pod)",
+      "hasConfig(Pod, \"container0.cmd0\", \"driver\")",
+      "hasConfig(Pod, \"container0.image\", Image)",
+      "sparkImg(Image)"
+    ],
+    [
+      "safeSpark(Pod)",
+      "M: member(Pod, \"SafeSparkGroup\")",
+      "safeSpark(M)"
+    ],
+    [
+      "authPodToUser(Pod, User)",
+      "hasConfig(Pod, \"latte.user\", User)"
+    ],
+    [
+      "authPodToUser(Pod, User)",
+      "hasConfig(Pod, \"latte.creator\", Creator)",
+      "authPodToUser(Creator, User)"
+    ],
+    [
+      "authPodToImage(Pod, Image)",
+      "Pod: config(Pod, \"spark.jar\", Image)"
+    ],
+    [
+      "checkK8sPodAccess(Pod, Host, File)",
+      "safeSpark(Pod)",
+      "k8sVM(Host)",
+      "authPodToUser(Pod, User)",
+      "authPodToImage(Pod, Image)",
+      "fileAcl(File, User, Image)"
+    ]
+  ],
+
+  "Comments":"Guards for K8s Spark Evaluation",
+  "guards": {
+  "K8sHDFSAccess": {
+    "args": ["?Instance", "?File"],
+    "exprs": [
+      ["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+      ["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+    ],
+    "links": [
+      "$GroupSet",
+      "$InstanceSet"
+    ],
+    "queries": [
+      "checkK8sPodAccess($Instance, $BearerRef, $File)"
+    ]
+  }
+  }
+
+}

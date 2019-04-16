@@ -19,7 +19,7 @@
     ],
     [
       "checkMasterSource(Master)",
-      "launches(Worker, Image)",
+      "launches(Master, Image)",
       "buildsFrom(Image, Source)",
       "expectedClusterSource(Source)",
       "hasConfig(Master, \"cmd0\", \"docker-start-master.sh\")",

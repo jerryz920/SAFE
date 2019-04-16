@@ -6,7 +6,7 @@ guard="image-builder"
 
 
 cd $workdir/safe-apps/cloud-attestation/latte-generator
-python3 main.py -b $guard -e endorsements/*.json -g guards/*.json > latte.slang
+python3 main.py -b $guard -e endorsements/*.json -g guards/*.json -s tests/functions > latte.slang
 cd $workdir
 sed -i "/.*url = \"http/ s:.*:    url = \"http\://${RIAK_IP}\:8098/types/safesets/buckets/safe/keys\":" safe-server/src/main/resources/application.conf
 

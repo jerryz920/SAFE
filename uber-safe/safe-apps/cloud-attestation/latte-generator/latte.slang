@@ -20,11 +20,36 @@ defenv PageRankJobSource() :- "https://github.com/intel/hibench.git".
 // Envs from external endorsements: attesterSet
 defenv SparkSource() :- "https://github.com/apache/spark.git#dev".
 // Envs from external endorsements: tapconSet
+defenv TapConDockerSource() :- "https://github.com/jerryz920/docker.git#dev".
 defenv TapConSource() :- "https://github.com/jerryz920/boot2docker.git#dev".
 defenv TapConLinuxSource() :- "https://github.com/jerryz920/linux.git#tapcon-v4.4.39".
-defenv TapConDockerSource() :- "https://github.com/jerryz920/docker.git#dev".
+// Envs from external endorsements: ContainerIsolationGuardRuleSet
+// Envs from external endorsements: K8sSparkGuardRuleSet
+// Envs from external endorsements: KeystoneGuardRuleSet
+defenv KeystoneClientSource() :- "https://github.com/jerryz920/kvclient.git#master".
+// Envs from external endorsements: LaunchGuardGuardRuleSet
+defenv LaunchGuardText() :- "JustForTest".
+// Envs from external endorsements: MembershipGuardRuleSet
+defenv OwnerGuard() :- "ownerguardtext".
+defenv MasterSource() :- "https://github.com/apache/spark.git#dev".
+defenv WorkerSource() :- "https://github.com/apache/spark.git#dev".
+defenv JoinerGuard() :- "joinguardtext".
+// Envs from external endorsements: MySQLGuardRuleSet
+defenv MysqlClientSource() :- "https://github.com/jerryz920/dbt2.git#master".
+// Envs from external endorsements: CodeQualityGuardRuleSet
+defenv ScannerSource() :- "https://github.com/arminc/clair-scanner.git#master".
 // Envs from external endorsements: SparkGuardRuleSet
 defenv DriverSource() :- "https://github.com/intel-hadoop/hibench.git#dev".
+// Envs from external endorsements: TestFetchGuardRuleSet
+// Envs from external endorsements: TrustedCodeGuardRuleSet
+defenv TrustedSource1() :- "https://github.com/jerryz920/boot2docker".
+defenv TrustedSource2() :- "https://github.com/jerryz920/docker".
+defenv TrustedSource3() :- "https://github.com/jerryz920/spark".
+defenv TrustedSourceProperty() :- "0x1234567".
+// Envs from external endorsements: TrustedConnectionGuardRuleSet
+defenv InnerNetwork() :- ipv4"192.168.0.0/24".
+defenv OpenDns() :- "8.8.8.8".
+defenv RepoAddr() :- ipv4"10.0.0.2".
 
 //////////////////////////////////////////////////////
 // Rulesets
@@ -242,6 +267,194 @@ defcon consTapconSet() :-
   }.
 
 definit consTapconSet().
+// Rulesets of external endorsements: ContainerIsolationGuardRuleSet
+
+defcon consContainerIsolationGuardRuleSet() :-
+  {
+    label("ContainerIsolationGuardRuleSet").
+    containerSpec("pidns", "default").
+    containerSpec("netns", "default").
+    containerSpec("mountns", "default").
+    containerSpec("utsns", "default").
+    containerSpec("ipcns", "default").
+    containerSpec("apparmor-profile", "default").
+    containerSpec("privileged", "false").
+
+    kernelBuildConfig(Image, Name, Value) :-
+      buildsFrom(Image, Source),
+      kernelBuildConfig(Source, Name, Value).
+
+    unsatisfiedConfig(Instance, Conf, Value) :-
+      containerSpec(Name, Value),
+      hasConfig(Instance, Name, RealValue),
+      Value \== RealValue.
+
+    containerIsolated(Instance) :-
+      H : config(Instance, "pidns", "default"),
+      H : config(Instance, "netns", "default"),
+      H : config(Instance, "mountns", "default"),
+      H : config(Instance, "utsns", "default"),
+      H : config(Instance, "ipcns", "default"),
+      H : config(Instance, "apparmor-profile", "default"),
+      H : config(Instance, "privileged", "false"),
+      H : config(Instance, "mount", "null"),
+      attester(H),
+      launches(H, TapconImage),
+      kernelBuildConfig(TapconImage, "apparmor", 1),
+      kernelBuildConfig(TapconImage, "selinux", 1),
+      kernelBuildConfig(TapconImage, "seccomp", 1),
+      kernelBuildConfig(TapconImage, "namespace", 1),
+      kernelBuildConfig(TapconImage, "portext", 1).
+  }.
+
+definit consContainerIsolationGuardRuleSet().
+// Rulesets of external endorsements: K8sSparkGuardRuleSet
+
+defcon consK8sSparkGuardRuleSet() :-
+  {
+    label("K8sSparkGuardRuleSet").
+    fileAcl("point1k.tsv", "kuser1", "46dcbbfdf9c95d5920dca19aa396cecc0a49527e2c61886f75a4d34e617b3375").
+    fileAcl("nycb.tsv", "kuser1", "46dcbbfdf9c95d5920dca19aa396cecc0a49527e2c61886f75a4d34e617b3375").
+    k8sImg("52af3fd4-8d42-445d-86fa-5953cffedeb5").
+    sparkImg("spark").
+
+    k8sVM(Instance) :-
+      M : member(Instance, "K8sGroup"),
+      k8sVM(M).
+
+    k8sVM(Instance) :-
+      launches(Instance, Image),
+      k8sImg(Image).
+
+    safeSpark(Pod) :-
+      hasConfig(Pod, "container0.cmd0", "driver"),
+      hasConfig(Pod, "container0.image", Image),
+      sparkImg(Image).
+
+    safeSpark(Pod) :-
+      M : member(Pod, "SafeSparkGroup"),
+      safeSpark(M).
+
+    authPodToUser(Pod, User) :-
+      hasConfig(Pod, "latte.user", User).
+
+    authPodToUser(Pod, User) :-
+      hasConfig(Pod, "latte.creator", Creator),
+      authPodToUser(Creator, User).
+
+    authPodToImage(Pod, Image) :-
+      Pod : config(Pod, "spark.jar", Image).
+
+    checkK8sPodAccess(Pod, Host, File) :-
+      safeSpark(Pod),
+      k8sVM(Host),
+      authPodToUser(Pod, User),
+      authPodToImage(Pod, Image),
+      fileAcl(File, User, Image).
+  }.
+
+definit consK8sSparkGuardRuleSet().
+// Rulesets of external endorsements: KeystoneGuardRuleSet
+
+defcon consKeystoneGuardRuleSet() :-
+  {
+    label("KeystoneGuardRuleSet").
+    approvedSource($KeystoneClientSource).
+
+    checkKeystoneRequesterImage(Instance) :-
+      launches(Instance, Image),
+      buildsFrom(Image, Source),
+      checkKeystoneRequesterSource(Source).
+
+    checkKeystoneRequesterSource(Source) :-
+      approvedSource(Source).
+  }.
+
+definit consKeystoneGuardRuleSet().
+// Rulesets of external endorsements: LaunchGuardGuardRuleSet
+
+defcon consLaunchGuardGuardRuleSet() :-
+  {
+    label("LaunchGuardGuardRuleSet").
+    expectedLaunchGuard($LaunchGuardText).
+
+    checkVMClusterLaunchGuard(Instance) :-
+      H : config(Instance, "vpcid", ClusterID),
+      H : config(ClusterID, "launchGuard", GuardText),
+      trustedCloudProvider(H),
+      expectedLaunchGuard(GuardText).
+  }.
+
+definit consLaunchGuardGuardRuleSet().
+// Rulesets of external endorsements: MembershipGuardRuleSet
+
+defcon consMembershipGuardRuleSet() :-
+  {
+    label("MembershipGuardRuleSet").
+    trustedMasterSource($MasterSource).
+    trustedWorkerSource($WorkerSource).
+    trustedOwnerGuard($OwnerGuard).
+    trustedJoinerGuard($JoinerGuard).
+
+    trustedCluster(Instance) :-
+      launches(Instance, ImageW),
+      buildsFrom(ImageW, SourceW),
+      trustedWorkerSource(SourceW),
+      Instance : join(ClusterID, Master),
+      Master : member(ClusterID, Instance),
+      masterRunsSource(Master).
+
+    masterRunsSource(Master) :-
+      Master : cluster(ClusterID, GuardO, GuardJ),
+      trustedOwnerGuard(GuardO),
+      trustedJoinerGuard(GuardJ),
+      launches(Master, Image),
+      buildsFrom(Image, Source),
+      trustedMasterSource(Source).
+  }.
+
+definit consMembershipGuardRuleSet().
+// Rulesets of external endorsements: MySQLGuardRuleSet
+
+defcon consMySQLGuardRuleSet() :-
+  {
+    label("MySQLGuardRuleSet").
+    mysqlClientSource($MysqlClientSource).
+
+    checkMySQLImage(Instance) :-
+      launches(Instance, Image),
+      buildsFrom(Image, Source),
+      checkMySQLSource(Source).
+
+    checkMySQLSource(Source) :-
+      mysqlClientSource(Source).
+  }.
+
+definit consMySQLGuardRuleSet().
+// Rulesets of external endorsements: CodeQualityGuardRuleSet
+
+defcon consCodeQualityGuardRuleSet() :-
+  {
+    label("CodeQualityGuardRuleSet").
+    fatalCVE("cve-2017-8834").
+    fatalCVE("cve-2017-7691").
+    fatalCVE("cve-2017-7960").
+    clearance("no-crit-cve-2017", "true").
+    scannerSource($ScannerSource).
+
+    checkVulnerability(Instance) :-
+      launches(Instance, "image-ctn"),
+      Scanner : endorse(Image, Prop, Value),
+      clearance(Prop, Value),
+      clairScanner(Scanner).
+
+    clairScanner(Instance) :-
+      launches(Instance, Image),
+      buildsFrom(Image, Source),
+      scannerSource(Source).
+  }.
+
+definit consCodeQualityGuardRuleSet().
 // Rulesets of external endorsements: SparkGuardRuleSet
 
 defcon consSparkGuardRuleSet() :-
@@ -259,7 +472,7 @@ defcon consSparkGuardRuleSet() :-
       hasConfig(Worker, "cmd0", "docker-start-slave.sh").
 
     checkMasterSource(Master) :-
-      launches(Worker, Image),
+      launches(Master, Image),
       buildsFrom(Image, Source),
       expectedClusterSource(Source),
       hasConfig(Master, "cmd0", "docker-start-master.sh"),
@@ -285,6 +498,72 @@ defcon consSparkGuardRuleSet() :-
   }.
 
 definit consSparkGuardRuleSet().
+// Rulesets of external endorsements: TestFetchGuardRuleSet
+
+defcon consTestFetchGuardRuleSet() :-
+  {
+    label("TestFetchGuardRuleSet").
+
+    fetch(Instance) :-
+      H : runs(Instance, Image),
+      fetch(H).
+
+    fetch(Instance) :-
+      H : runs(Instance, Image),
+      trustedCloudProvider(H).
+  }.
+
+definit consTestFetchGuardRuleSet().
+// Rulesets of external endorsements: TrustedCodeGuardRuleSet
+
+defcon consTrustedCodeGuardRuleSet() :-
+  {
+    label("TrustedCodeGuardRuleSet").
+    trustedSource($TrustedSource1).
+    trustedSource($TrustedSource2).
+    trustedSource($TrustedSource3).
+
+    checkTrustedImage(Image) :-
+      imageProperty(Image, $TrustedSourceProperty, 1).
+
+    checkTrustedImage(Image) :-
+      buildsFrom(Image, Source),
+      checkTrustedSource(Source).
+
+    checkTrustedSource(Source) :-
+      trustedSource(Source).
+
+    checkTrustedSource(Source) :-
+      imageProperty(Source, $TrustedSourceProperty, 1).
+  }.
+
+definit consTrustedCodeGuardRuleSet().
+// Rulesets of external endorsements: TrustedConnectionGuardRuleSet
+
+defcon consTrustedConnectionGuardRuleSet() :-
+  {
+    label("TrustedConnectionGuardRuleSet").
+    approvedDns($OpenDns).
+    approvedNetwork("docker", ipv4"192.168.0.0/24").
+    approvedNetwork("docker", ipv4"10.0.0.2").
+
+    approveConnections(Instance) :-
+      launches(Instance, Image),
+      buildsFrom(Image, Source),
+      endorse(Source, $PropertyDns, Dns),
+      approvedDns(Dns),
+      \+(invalidConnection(Instance)).
+
+    invalidConnection(Instance) :-
+      connection(Instance, Service, Url),
+      \+(allowConnect(Service, Url)).
+
+    allowConnect(Service, Url) :-
+      approvedNetwork(Service, ApprovedNetwork),
+      Url <: ApprovedNetwork.
+  }.
+
+definit consTrustedConnectionGuardRuleSet().
 
 //////////////////////////////////////////////////////
 // Interfaces for attestations
@@ -815,7 +1094,115 @@ defpost delTrustHubLink(?OtherHub) :- [ dtorTrustHubLink(?OtherHub) ].
 // Guards
 //////////////////////////////////////////////////////
 
-defguard checkDriverFromHDFS(?Instance) :- 
+defguard checkContainerIsolation(?Instance) :- 
+  ?HostSet := label($BearerRef, "instance/?Instance"),
+  ?InstanceSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("ContainerIsolationGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    containerIsolated($Instance)?
+  }.
+
+
+defguard checkK8sHDFSAccess(?Instance,?File) :- 
+  ?InstanceSet := label(?BearerRef, "instance/?Instance"),
+  ?GroupSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("K8sSparkGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($GroupSet).
+    link($InstanceSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkK8sPodAccess($Instance, $BearerRef, $File)?
+  }.
+
+
+defguard checkKeystoneReq(?Instance) :- 
+  ?InstanceSet := label(?BearerRef, "instance/?Instance"),
+  ?HelperRuleSet := label("KeystoneGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkKeystoneRequesterImage($Instance)?
+  }.
+
+
+defguard checkClusterGuard(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("LaunchGuardGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkVMClusterLaunchGuard($Instance)?
+  }.
+
+
+defguard checkTrustedCluster(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("MembershipGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    trustedCluster($Instance)?
+  }.
+
+
+defguard checkMySQLConnection(?Instance) :- 
+  ?InstanceSet := label(?BearerRef, "instance/?Instance"),
+  ?HelperRuleSet := label("MySQLGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkMySQLImage($Instance)?
+  }.
+
+
+defguard checkCodeQuality(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("CodeQualityGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkVulnerability($Instance)?
+  }.
+
+
+defguard checkAllForSparkEvaluation(?Instance) :- 
   ?InstanceSet := label(?BearerRef, "instance/?Instance"),
   ?GroupSet := label(?Instance, "instance/?Instance"),
   ?HelperRuleSet := label("SparkGuardRuleSet"),
@@ -827,7 +1214,7 @@ defguard checkDriverFromHDFS(?Instance) :-
     link($HelperRuleSet).
     link($TrustWallet).
     link($LibraryRules).
-    checkDriverSource($Instance)?
+    checkAll($Instance)?
   }.
 
 
@@ -863,7 +1250,7 @@ defguard checkWorkerFromMaster(?Instance) :-
   }.
 
 
-defguard checkAllForSparkEvaluation(?Instance) :- 
+defguard checkDriverFromHDFS(?Instance) :- 
   ?InstanceSet := label(?BearerRef, "instance/?Instance"),
   ?GroupSet := label(?Instance, "instance/?Instance"),
   ?HelperRuleSet := label("SparkGuardRuleSet"),
@@ -875,7 +1262,7 @@ defguard checkAllForSparkEvaluation(?Instance) :-
     link($HelperRuleSet).
     link($TrustWallet).
     link($LibraryRules).
-    checkAll($Instance)?
+    checkDriverSource($Instance)?
   }.
 
 
@@ -892,5 +1279,163 @@ defguard checkMaster(?Instance) :-
     link($TrustWallet).
     link($LibraryRules).
     checkMasterSource($Instance)?
+  }.
+
+
+defguard checkFetch(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    fetch($Instance)?
+  }.
+
+
+defguard checkConfig(?Instance,?Name,?Value) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    hasConfig($Instance, $Name, $Value)?
+  }.
+
+
+defguard checkAttester(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    attester($Instance)?
+  }.
+
+
+defguard checkEndorse(?Instance,?Image,?Name,?Value) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    endorse($Image, $Name, $Value)?
+  }.
+
+
+defguard checkProperty(?Instance,?Name,?Value) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkProperty($Instance, $Name, $Value)?
+  }.
+
+
+defguard checkLaunches(?Instance,?Image) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    launches($Instance, $Image)?
+  }.
+
+
+defguard checkBuilder(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    builder($Instance)?
+  }.
+
+
+defguard checkBuildsFrom(?Instance,?Image,?Value) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TestFetchGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    buildsFrom($Image, $Value)?
+  }.
+
+
+defguard checkTrustedCode(?Image, ?Delegator) :- 
+  ?ImageSet := label(?Delegator, "control/?Image"),
+  ?HelperRuleSet := label("TrustedCodeGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($ImageSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    checkTrustedImage($Image)?
+  }.
+
+
+defguard checkTrustedConnections(?Instance) :- 
+  ?InstanceSet := label($BearerRef, "instance/?Instance"),
+  ?HostSet := label(?Instance, "instance/?Instance"),
+  ?HelperRuleSet := label("TrustedConnectionGuardRuleSet"),
+  ?TrustWallet := label("trustWallet"),
+  ?LibraryRules := label("libraryRules"),
+  {
+    link($InstanceSet).
+    link($HostSet).
+    link($HelperRuleSet).
+    link($TrustWallet).
+    link($LibraryRules).
+    approveConnections($Instance)?
   }.
 

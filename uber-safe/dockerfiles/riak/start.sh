@@ -28,4 +28,5 @@ else
   bash ~/test.sh
 fi
 
-/bin/bash
+#/bin/bash
+trap : TERM INT; sleep infinity & wait
