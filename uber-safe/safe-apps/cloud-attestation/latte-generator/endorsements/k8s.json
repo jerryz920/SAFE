@@ -1,11 +1,13 @@
 {
   "envs": {
-    "SparkSource": "\"https://github.com/apache/spark.git#dev\""
+    "SparkImage": "\"spark\"",
+    "K8sImage": "\"52af3fd4-8d42-445d-86fa-5953cffedeb5\""
   },
-  "label": "$SparkSource",
+  "label": "K8sTest",
   "name": "attesterSet",
   "speaker": "0x12345678",
   "attestations" : [
-        "endorse($SparkSource, \"attester\", 1)"
+        "endorse($SparkImage, \"attester\", 1)",
+        "endorse($K8sImage, \"attester\", 1)"
   ]
 }

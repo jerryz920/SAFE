@@ -10,11 +10,6 @@
   "rules": [
     [
       "k8sVM(Instance)",
-      "M: member(Instance, \"K8sGroup\")",
-      "k8sVM(M)"
-    ],
-    [
-      "k8sVM(Instance)",
       "launches(Instance, Image)",
       "k8sImg(Image)"
     ],
@@ -54,20 +49,48 @@
 
   "Comments":"Guards for K8s Spark Evaluation",
   "guards": {
-  "K8sHDFSAccess": {
-    "args": ["?Instance", "?File"],
-    "exprs": [
-      ["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
-      ["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
-    ],
-    "links": [
-      "$GroupSet",
-      "$InstanceSet"
-    ],
-    "queries": [
-      "checkK8sPodAccess($Instance, $BearerRef, $File)"
+    "K8sHDFSAccess": {
+      "args": ["?Instance", "?File"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"checkK8sPodAccess($Instance, $BearerRef, $File)"
     ]
-  }
+    },
+    "SafeSpark": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"safeSpark($Instance)"
+    ]
+    },
+    "K8sVm": {
+      "args": ["?Instance"],
+      "exprs": [
+	["?InstanceSet", ":=", "label(?BearerRef, \"instance/?Instance\")"],
+	["?GroupSet", ":=", "label(?Instance, \"instance/?Instance\")"]
+      ],
+      "links": [
+	"$GroupSet",
+	"$InstanceSet"
+      ],
+      "queries": [
+	"k8sVM($BearerRef)"
+    ]
+    }
   }
 
 }
