@@ -10,6 +10,11 @@
   "rules": [
     [
       "k8sVM(Instance)",
+      "M: member(Instance, \"K8sGroup\")",
+      "k8sVM(M)"
+    ],
+    [
+      "k8sVM(Instance)",
       "launches(Instance, Image)",
       "k8sImg(Image)"
     ],
@@ -88,7 +93,7 @@
 	"$InstanceSet"
       ],
       "queries": [
-	"k8sVM($BearerRef)"
+	"k8sVM($Instance)"
     ]
     }
   }
